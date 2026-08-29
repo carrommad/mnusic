@@ -709,20 +709,21 @@
                         const minDist = (n1.baseRadius + n2.baseRadius) * 2.2 * nodeBlobScale;
 
                         if (distSq < minDist * minDist && distSq > 0.5) {
-                            // 1. Organic direction deflection & velocity nudge
+                            // Organic trajectory bounce scaled directly by collisionPercent setting
                             const dist = Math.sqrt(distSq);
                             const nx = dx / dist;
                             const ny = dy / dist;
-                            n1.vx -= nx * 0.15;
-                            n1.vy -= ny * 0.15;
-                            n2.vx += nx * 0.15;
-                            n2.vy += ny * 0.15;
+                            const bounceForce = 0.35 * (collisionPercent / 50.0);
 
-                            // 2. Torque / Rotation spin deflection
-                            n1.rotSpeed += (Math.random() - 0.5) * 0.015;
-                            n2.rotSpeed += (Math.random() - 0.5) * 0.015;
+                            n1.vx -= nx * bounceForce;
+                            n1.vy -= ny * bounceForce;
+                            n2.vx += nx * bounceForce;
+                            n2.vy += ny * bounceForce;
 
-                            // 3. Physical trajectory & torque deflection (without random particle flashes)
+                            // Torque / Rotation spin deflection
+                            n1.rotSpeed += (Math.random() - 0.5) * 0.02 * (collisionPercent / 50.0);
+                            n2.rotSpeed += (Math.random() - 0.5) * 0.02 * (collisionPercent / 50.0);
+
                             sparkCount++;
                         }
                     }
