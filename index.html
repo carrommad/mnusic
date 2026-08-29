@@ -829,20 +829,25 @@
                 soundRipples.splice(0, soundRipples.length - 15);
             }
 
+            // Draw expanding acoustic ripples (growing circumferences originating from node center)
             for (let i = soundRipples.length - 1; i >= 0; i--) {
                 const r = soundRipples[i];
                 r.frame++;
                 const progress = r.frame / r.duration;
-                r.currR = r.maxR * Math.sin(progress * Math.PI);
-                const alpha = Math.sin(progress * Math.PI) * 0.6;
+                const currR = r.maxR * Math.sin(progress * Math.PI);
+                const alpha = Math.sin(progress * Math.PI) * 0.7;
 
-                ctx.strokeStyle = `rgba(${r.color}, ${alpha})`;
-                ctx.lineWidth = 1.5;
+                ctx.save();
                 ctx.beginPath();
-                ctx.arc(r.x, r.y, Math.max(0.1, r.currR), 0, Math.PI * 2);
+                ctx.arc(r.x, r.y, Math.max(0.1, currR), 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(${r.color}, ${alpha})`;
+                ctx.lineWidth = Math.max(1.0, 2.0 * (1.0 - progress));
                 ctx.stroke();
+                ctx.restore();
 
-                if (r.frame >= r.duration) soundRipples.splice(i, 1);
+                if (r.frame >= r.duration) {
+                    soundRipples.splice(i, 1);
+                }
             }
 
             requestAnimationFrame(renderLoop);
