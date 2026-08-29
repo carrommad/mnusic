@@ -667,6 +667,7 @@
 
             const loadRatio = currentLoad / 100;
             const currentStretch = 1.0 + (currentDynamicStretch - 1.0) * loadRatio;
+            let displacedCount = 0;
 
             for (let i = 0; i < nodeObjects.length; i++) {
                 const n = nodeObjects[i];
@@ -676,13 +677,15 @@
                     const dx = n.x - mouseX;
                     const dy = n.y - mouseY;
                     const distSq = dx * dx + dy * dy;
-                    const forceRadius = 60; // Reduced from 140px to 60px (very localized displacement)
+                    const forceRadius = 60; // 60px localized displacement
                     
                     if (distSq < forceRadius * forceRadius && distSq > 1) {
                         const dist = Math.sqrt(distSq);
                         const force = (1.0 - dist / forceRadius) * 0.8; // Gentle repelling nudge
                         n.vx += (dx / dist) * force;
                         n.vy += (dy / dist) * force;
+                        n.flashAlpha = Math.max(n.flashAlpha, 0.7); // Light up particle on touch
+                        displacedCount++;
                     }
                 }
 
@@ -725,7 +728,7 @@
                 }
 
                 if (n.flashAlpha > 0.05) {
-                    // Bright white/gold luminescent flash when note triggers
+                    // Bright white/gold luminescent flash when note or mouse triggers
                     ctx.fillStyle = `rgba(255, 255, 255, ${0.7 + n.flashAlpha * 0.3})`;
                 } else if (n.busyAlpha > 0.05) {
                     if (n.type === 'gpu') {
@@ -741,9 +744,13 @@
                 }
 
                 ctx.beginPath();
-                ctx.ellipse(0, 0, Math.max(1, radiusX), Math.max(1, radiusY), 0, 0, Math.PI * 2);
+                ctx.ellipse(0, 0, Math.max(0.1, radiusX), Math.max(0.1, radiusY), 0, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
+            }
+
+            if (displacedCount > 0 && Math.random() < 0.35) {
+                self.postMessage({ type: 'nodeDisplaced', count: displacedCount, mouseX: mouseX, mouseY: mouseY });
             }
 
             // Prune excess ripples to cap memory (max 15 active ripples)
@@ -810,6 +817,43 @@
         let renderWorker = null;
         const canvasElement = document.getElementById('ambientCanvas');
 
+        function playFluidDisplacementChime(x, count) {
+            if (!audioCtx || !isPlaying) return;
+            const now = audioCtx.currentTime;
+            
+            // Map horizontal mouse position to stereo panning and high-frequency scale note
+            const pan = Math.max(-0.95, Math.min(0.95, (x / canvasElement.clientWidth) * 2 - 1));
+            const scaleNotes = SCALES[currentScaleKey] || SCALES['pentatonic'];
+            
+            // Pick note index based on count and position
+            const noteIdx = (Math.floor(x / 40) + count) % scaleNotes.length;
+            const freq = scaleNotes[noteIdx] * 2.0; // One octave higher crystal tone
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            
+            // Fast delicate glass envelope
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.exponentialRampToValueAtTime(0.04, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+            osc.connect(gain);
+            if (panner) {
+                panner.pan.setValueAtTime(pan, now);
+                gain.connect(panner);
+                panner.connect(reverbNode || masterGain);
+            } else {
+                gain.connect(reverbNode || masterGain);
+            }
+
+            osc.start(now);
+            osc.stop(now + 0.26);
+        }
+
         function initOffscreenWorker() {
             const blob = new Blob([document.getElementById('workerScript').textContent], { type: 'text/javascript' });
             renderWorker = new Worker(URL.createObjectURL(blob));
@@ -818,6 +862,8 @@
                 if (e.data.type === 'breathingUpdate') {
                     currentBreathingModulation = e.data.normalizedBreathing;
                     document.getElementById('stretchVal').innerText = `${e.data.currentDynamicStretch.toFixed(2)}x (Breathing)`;
+                } else if (e.data.type === 'nodeDisplaced') {
+                    playFluidDisplacementChime(e.data.mouseX, e.data.count);
                 }
             };
 
