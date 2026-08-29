@@ -665,6 +665,64 @@
                 currentDynamicStretch: currentDynamicStretch
             });
 
+            // --- O(N) SPATIAL GRID FOR COLLISION SENSATION & SPARK FLARES ---
+            const gridSize = 45; // 45px spatial bins
+            const gridCols = Math.ceil(width / gridSize) + 1;
+            const gridRows = Math.ceil(height / gridSize) + 1;
+            const grid = new Map();
+
+            for (let i = 0; i < nodeObjects.length; i++) {
+                const n = nodeObjects[i];
+                const col = Math.floor(n.x / gridSize);
+                const row = Math.floor(n.y / gridSize);
+                const key = `${col}_${row}`;
+                if (!grid.has(key)) grid.set(key, []);
+                grid.get(key).push(n);
+            }
+
+            // Check neighbor bins for proximity collision sensation
+            let sparkCount = 0;
+            grid.forEach((nodes, key) => {
+                if (nodes.length < 2) return;
+                const [col, row] = key.split('_').map(Number);
+
+                for (let i = 0; i < nodes.length; i++) {
+                    const n1 = nodes[i];
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const n2 = nodes[j];
+                        const dx = n2.x - n1.x;
+                        const dy = n2.y - n1.y;
+                        const distSq = dx * dx + dy * dy;
+                        const minDist = (n1.baseRadius + n2.baseRadius) * 2.2 * nodeBlobScale;
+
+                        if (distSq < minDist * minDist && distSq > 0.5) {
+                            // 1. Organic direction deflection & velocity nudge
+                            const dist = Math.sqrt(distSq);
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            n1.vx -= nx * 0.15;
+                            n1.vy -= ny * 0.15;
+                            n2.vx += nx * 0.15;
+                            n2.vy += ny * 0.15;
+
+                            // 2. Torque / Rotation spin deflection
+                            n1.rotSpeed += (Math.random() - 0.5) * 0.015;
+                            n2.rotSpeed += (Math.random() - 0.5) * 0.015;
+
+                            // 3. Visual Collision Spark / Flash Sensation
+                            n1.flashAlpha = Math.max(n1.flashAlpha, 0.85);
+                            n2.flashAlpha = Math.max(n2.flashAlpha, 0.85);
+
+                            sparkCount++;
+                        }
+                    }
+                }
+            });
+
+            if (sparkCount > 0 && Math.random() < 0.25) {
+                self.postMessage({ type: 'collisionSparks', count: sparkCount });
+            }
+
             const loadRatio = currentLoad / 100;
             const currentStretch = 1.0 + (currentDynamicStretch - 1.0) * loadRatio;
             let displacedCount = 0;
@@ -854,6 +912,39 @@
             osc.stop(now + 0.26);
         }
 
+        function playCollisionSparkChime(count) {
+            if (!audioCtx || !isPlaying) return;
+            const now = audioCtx.currentTime;
+            
+            const scaleNotes = SCALES[currentScaleKey] || SCALES['pentatonic'];
+            const freq = scaleNotes[Math.floor(Math.random() * scaleNotes.length)];
+            const pan = (Math.random() - 0.5) * 1.6;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq * 0.75, now);
+
+            // Soft wooden click/spark envelope
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.exponentialRampToValueAtTime(Math.min(0.03, 0.01 * count), now + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+            osc.connect(gain);
+            if (panner) {
+                panner.pan.setValueAtTime(pan, now);
+                gain.connect(panner);
+                panner.connect(reverbNode || masterGain);
+            } else {
+                gain.connect(reverbNode || masterGain);
+            }
+
+            osc.start(now);
+            osc.stop(now + 0.13);
+        }
+
         function initOffscreenWorker() {
             const blob = new Blob([document.getElementById('workerScript').textContent], { type: 'text/javascript' });
             renderWorker = new Worker(URL.createObjectURL(blob));
@@ -864,6 +955,8 @@
                     document.getElementById('stretchVal').innerText = `${e.data.currentDynamicStretch.toFixed(2)}x (Breathing)`;
                 } else if (e.data.type === 'nodeDisplaced') {
                     playFluidDisplacementChime(e.data.mouseX, e.data.count);
+                } else if (e.data.type === 'collisionSparks') {
+                    playCollisionSparkChime(e.data.count);
                 }
             };
 
