@@ -641,8 +641,9 @@
             const phaseStep = (Math.PI * 2) / (breathingCycleSeconds * 60);
             globalBreathingPhase += phaseStep;
 
-            const slowOrganicDrift = Math.sin(globalBreathingPhase) * 0.35 + Math.sin(globalBreathingPhase * breathingPhaseDriftMult) * 0.15;
-            const normalizedBreathing = slowOrganicDrift / 0.50;
+            // Organic breathing modulation with dynamic amplitude expansion
+            const slowOrganicDrift = (Math.sin(globalBreathingPhase) * 0.50 + Math.sin(globalBreathingPhase * breathingPhaseDriftMult) * 0.35) * (stretchFactor - 1.0) * 0.6;
+            const normalizedBreathing = Math.max(-1.0, Math.min(1.0, slowOrganicDrift / 0.50));
 
             const currentDynamicStretch = Math.max(1.0, stretchFactor + slowOrganicDrift);
 
