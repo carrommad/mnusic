@@ -621,11 +621,12 @@
                     let type = 'cpu';
                     let baseRadius = Math.random() * 1.5 + 1.2;
 
-                    if (i % 25 === 0) {
+                    const randType = Math.random();
+                    if (randType < 0.025) {
                         type = 'gpu'; // Interleaved GPU A100 node (vibrant gold)
                         baseRadius = Math.random() * 3 + 4.5;
-                    } else if (i % 65 === 0) {
-                        type = 'inter';
+                    } else if (randType < 0.065) {
+                        type = 'inter'; // Interactive note-striking node
                         baseRadius = Math.random() * 2 + 2.5;
                     }
 
@@ -794,8 +795,7 @@
                 if (n.y < -margin) n.y = height + margin;
                 if (n.y > height + margin) n.y = -margin;
 
-                const targetAlpha = n.targetBusy ? 1.0 : 0.0;
-                n.busyAlpha += (targetAlpha - n.busyAlpha) * 0.05;
+                n.busyAlpha = n.targetBusy ? 1.0 : 0.0;
 
                 // Decay flash lightness highlight
                 if (n.flashAlpha > 0.01) {
