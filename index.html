@@ -459,6 +459,14 @@
 
                 <div class="control-group">
                     <div class="control-row">
+                        <label>Particle Collision Density</label>
+                        <span id="collisionDensityVal">15% Collidable</span>
+                    </div>
+                    <input type="range" id="collisionDensitySlider" class="slider-input" min="0" max="100" value="15" step="1">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row">
                         <label>Ellipsoid Volumetric Stretch</label>
                         <span id="stretchVal">Classified</span>
                     </div>
@@ -515,6 +523,7 @@
         let TOTAL_NODES = 1944;
         let stretchFactor = 1.8;
         let nodeBlobScale = 1.0;
+        let collisionPercent = 15; // User selectable % of particles that are collidable
 
         let mouseX = -1000;
         let mouseY = -1000;
@@ -556,6 +565,7 @@
                 TOTAL_NODES = data.totalNodes;
                 currentLoad = data.currentLoad;
                 nodeBlobScale = data.nodeBlobScale || 1.0;
+                collisionPercent = data.collisionPercent !== undefined ? data.collisionPercent : 15;
                 initNodeObjects();
                 renderLoop();
             }
@@ -574,6 +584,7 @@
                 TOTAL_NODES = data.totalNodes;
                 stretchFactor = data.stretchFactor;
                 nodeBlobScale = data.nodeBlobScale || 1.0;
+                collisionPercent = data.collisionPercent !== undefined ? data.collisionPercent : 15;
                 breathingCycleSeconds = data.breathingCycleSeconds;
                 breathingPhaseDriftMult = data.breathingPhaseDriftMult;
 
@@ -667,17 +678,19 @@
 
             // --- O(N) SPATIAL GRID FOR COLLISION SENSATION & SPARK FLARES ---
             const gridSize = 45; // 45px spatial bins
-            const gridCols = Math.ceil(width / gridSize) + 1;
-            const gridRows = Math.ceil(height / gridSize) + 1;
             const grid = new Map();
 
-            for (let i = 0; i < nodeObjects.length; i++) {
-                const n = nodeObjects[i];
-                const col = Math.floor(n.x / gridSize);
-                const row = Math.floor(n.y / gridSize);
-                const key = `${col}_${row}`;
-                if (!grid.has(key)) grid.set(key, []);
-                grid.get(key).push(n);
+            if (collisionPercent > 0) {
+                for (let i = 0; i < nodeObjects.length; i++) {
+                    const n = nodeObjects[i];
+                    if ((n.id % 100) < collisionPercent) { // Filter by user-selected collidable percentage
+                        const col = Math.floor(n.x / gridSize);
+                        const row = Math.floor(n.y / gridSize);
+                        const key = `${col}_${row}`;
+                        if (!grid.has(key)) grid.set(key, []);
+                        grid.get(key).push(n);
+                    }
+                }
             }
 
             // Check neighbor bins for proximity collision sensation
@@ -984,6 +997,7 @@
                 totalNodes: TOTAL_NODES,
                 stretchFactor: stretchFactor,
                 nodeBlobScale: nodeBlobScale,
+                collisionPercent: collisionPercent,
                 breathingCycleSeconds: breathingCycleSeconds,
                 breathingPhaseDriftMult: breathingPhaseDriftMult
             });
@@ -1497,6 +1511,14 @@
         blobScaleSlider.addEventListener('input', (e) => {
             nodeBlobScale = parseFloat(e.target.value);
             blobScaleVal.innerText = `${nodeBlobScale.toFixed(1)}x Scale`;
+            syncWorkerState();
+        });
+
+        const collisionDensitySlider = document.getElementById('collisionDensitySlider');
+        const collisionDensityVal = document.getElementById('collisionDensityVal');
+        collisionDensitySlider.addEventListener('input', (e) => {
+            collisionPercent = parseInt(e.target.value);
+            collisionDensityVal.innerText = `${collisionPercent}% Collidable`;
             syncWorkerState();
         });
 
