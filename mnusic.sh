@@ -8,6 +8,12 @@ PORT=8080
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd "$SCRIPT_DIR" || exit 1
 
+# Check if port 8080 is in use, otherwise find an available port
+if lsof -i:$PORT &> /dev/null || netstat -tuln 2>/dev/null | grep -q ":$PORT "; then
+    # Try port 8085 if 8080 is occupied
+    PORT=8085
+fi
+
 echo "======================================================================"
 echo " 🎵 MUSIC FOR SUPERCOMPUTERS - GENERATIVE HPC AMBIENT SYNTHESIZER"
 echo "======================================================================"
