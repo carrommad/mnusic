@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Ambient Synthesizer & Cluster Resonator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #04060a;
+            --panel-bg: rgba(12, 17, 28, 0.8);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-gold: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --accent-violet: #8b5cf6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
+        }
+
+        header {
+            padding: 1.5rem 3rem 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+        }
+
+        .title-group h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.9rem;
+            font-weight: 400;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #ffffff 0%, #f59e0b 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-group p {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            margin-top: 0.2rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .master-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .cluster-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 3px;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            padding: 0.5rem 1rem;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: rgba(245, 158, 11, 0.25);
+            color: var(--accent-gold);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .toggle-btn.active-lumi {
+            background: rgba(6, 182, 212, 0.25);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.6rem 1.2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-action.active-auto {
+            background: rgba(139, 92, 246, 0.25);
+            color: var(--accent-violet);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.25);
+        }
+
+        .btn-audio {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(6, 182, 212, 0.35) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fff;
+            padding: 0.8rem 1.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            letter-spacing: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .btn-audio.active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.35) 0%, rgba(6, 182, 212, 0.35) 100%);
+            border-color: var(--accent-emerald);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 1.5rem;
+            padding: 1.2rem 3rem;
+            flex: 1;
+            transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        main.sidebar-collapsed {
+            grid-template-columns: 1fr 0px;
+            gap: 0rem;
+        }
+
+        main.sidebar-collapsed .sidebar {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(50px);
+        }
+
+        .canvas-container {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            min-height: 560px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            transition: all 0.4s ease;
+        }
+
+        .canvas-container:-webkit-full-screen {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            border: none;
+        }
+
+        .canvas-container:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            border: none;
+        }
+
+        canvas { width: 100%; height: 100%; display: block; }
+
+        .hud-overlay {
+            position: absolute;
+            top: 1.2rem;
+            left: 1.2rem;
+            pointer-events: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            background: rgba(4, 6, 10, 0.8);
+            padding: 0.7rem 1rem;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 10;
+        }
+
+        .hud-overlay span { color: var(--accent-gold); font-weight: 500; }
+
+        .legend-row {
+            display: flex;
+            gap: 0.9rem;
+            margin-top: 0.2rem;
+            font-size: 0.72rem;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+        .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+        .dot-gpu { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+        .dot-cpu { background: #06b6d4; }
+        .dot-inter { background: #f43f5e; }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.2rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .panel h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.4rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .slider-input {
+            width: 100%;
+            margin-top: 0.3rem;
+            accent-color: var(--accent-gold);
+            cursor: pointer;
+        }
+
+        select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            width: 100%;
+            cursor: pointer;
+            outline: none;
+        }
+
+        select:focus { border-color: var(--accent-gold); }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 0.6rem;
+            border-radius: 4px;
+        }
+
+        .stat-label { font-size: 0.7rem; color: var(--text-secondary); font-family: 'JetBrains Mono'; }
+        .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 500; }
+        .val-gold { color: var(--accent-gold); }
+        .val-cyan { color: var(--accent-cyan); }
+
+        .note-log {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            height: 100px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 0.2rem;
+        }
+
+        .log-entry { opacity: 0.85; }
+
+        footer {
+            padding: 1rem 3rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            transition: all 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header id="mainHeader">
+        <div class="title-group">
+            <h1>MUSIC FOR SUPERCOMPUTERS</h1>
+            <p>Continuous Flow Engine & LUMI Real Telemetry Integration</p>
+        </div>
+        <div class="master-controls">
+            <div class="cluster-toggle">
+                <button id="btnSimulated" class="toggle-btn active">SIMULATED MN5 CLUSTER</button>
+                <button id="btnLumi" class="toggle-btn">REAL LUMI CLUSTER</button>
+            </div>
+            
+            <button id="btnAutoEvolve" class="btn-action">
+                AUTO-EVOLVE
+            </button>
+
+            <button id="btnToggleSidebar" class="btn-action">
+                <span id="sidebarIcon">⇥</span> <span id="sidebarText">HIDE MENU</span>
+            </button>
+
+            <button id="btnFullscreen" class="btn-action">
+                <span>⛶</span> FULLSCREEN
+            </button>
+
+            <button id="audioToggleBtn" class="btn-audio">▶ GENERATE SOUNDSCAPE</button>
+        </div>
+    </header>
+
+    <main id="mainLayout">
+        <div class="canvas-container" id="canvasContainer">
+            <div class="hud-overlay">
+                <div>CLUSTER SOURCE: <span id="hudSource" style="color:var(--accent-gold);">SIMULATED (MareNostrum 5)</span></div>
+                <div>ACTIVE COMPUTE NODES: <span id="hudNodes">1,895 / 1,944 Nodes</span></div>
+                
+                <div class="legend-row">
+                    <div class="legend-item"><div class="legend-dot dot-gpu"></div> GPU A100</div>
+                    <div class="legend-item"><div class="legend-dot dot-cpu"></div> CPU PAR</div>
+                    <div class="legend-item"><div class="legend-dot dot-inter"></div> INTERACTIVE</div>
+                </div>
+
+                <div style="margin-top:0.2rem;">AUTO-EVOLVE MODE: <span id="hudAutoEvolve" style="color:var(--text-secondary);">OFF</span></div>
+                <div style="margin-top:0.1rem;">WATERFALL SWEEP: <span id="hudWaterfall" style="color:var(--accent-gold);">IDLE</span></div>
+            </div>
+            <canvas id="ambientCanvas"></canvas>
+        </div>
+
+        <div class="sidebar" id="sidebarPanel">
+            <div class="panel">
+                <h2>Soundscape & Cluster Controls</h2>
+                
+                <div class="control-group" id="simulatedControlGroup">
+                    <div class="control-row">
+                        <label>Simulated Cluster Load</label>
+                        <span id="loadVal">97.5%</span>
+                    </div>
+                    <input type="range" id="loadSlider" class="slider-input" min="0.5" max="100" value="97.5" step="0.5">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row"><label>Synthesizer Instrument</label></div>
+                    <select id="timbreSelect">
+                        <option value="xylophone">Sweet Crystal Xylophone (FM Bright Metallic)</option>
+                        <option value="marimba">Warm Wooden Marimba (Soft Mallet Resonator)</option>
+                        <option value="celesta">Celestial Glass Bells (Eno Pure Tone)</option>
+                        <option value="vibraphone">Vibraphone (Smooth Metallic Sustained)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row"><label>Harmonic Musical Scale</label></div>
+                    <select id="scaleSelect">
+                        <option value="pentatonic">Eno Ambient Pentatonic (D Minor Pentatonic)</option>
+                        <option value="dorian">Dorian Mode (Atmospheric Ambient)</option>
+                        <option value="lydian">Lydian Mode (Luminous / Sci-Fi)</option>
+                        <option value="wholeTone">Whole Tone Scale (Dreamlike / Floating)</option>
+                        <option value="major">C Major Diatonic (Classic Pure Bright)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row">
+                        <label>Generative Variation (Eno Drift)</label>
+                        <span id="variationVal">35% Subtle</span>
+                    </div>
+                    <input type="range" id="variationSlider" class="slider-input" min="0" max="100" value="35" step="5">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row">
+                        <label>Reverb Hall Decay</label>
+                        <span id="reverbVal">7.0s</span>
+                    </div>
+                    <input type="range" id="reverbSlider" class="slider-input" min="1" max="12" value="7.0" step="0.5">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row">
+                        <label>Breathing Cycle Time (Period)</label>
+                        <span id="cycleTimeVal">30s Cycle</span>
+                    </div>
+                    <input type="range" id="cycleTimeSlider" class="slider-input" min="5" max="120" value="30" step="5">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row">
+                        <label>Breathing Phase Drift</label>
+                        <span id="phaseDriftVal">0.37x Harmonic</span>
+                    </div>
+                    <input type="range" id="phaseDriftSlider" class="slider-input" min="0.10" max="1.00" value="0.37" step="0.01">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row">
+                        <label>Node Blob Scale (Size)</label>
+                        <span id="blobScaleVal">1.0x Scale</span>
+                    </div>
+                    <input type="range" id="blobScaleSlider" class="slider-input" min="0.4" max="3.0" value="1.0" step="0.1">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row">
+                        <label>Ellipsoid Volumetric Stretch</label>
+                        <span id="stretchVal">Classified</span>
+                    </div>
+                    <input type="range" id="stretchSlider" class="slider-input" min="1" max="3" value="1.8" step="0.1">
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Node Classification Breakdown</h2>
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">CPU PAR</div>
+                        <div class="stat-val val-cyan" id="statCpu">1,875</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">GPU A100</div>
+                        <div class="stat-val val-gold" id="statGpu">18</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">BUSY NODES</div>
+                        <div class="stat-val val-gold" id="statAlloc">1,895</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">IDLE NODES</div>
+                        <div class="stat-val" style="color:#64748b;" id="statIdle">49</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Xylophone Waterfall Log</h2>
+                <div class="note-log" id="noteLog">
+                    <div class="log-entry">> OffscreenCanvas Web Worker engine active.</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div>MARENOSTRUM 5 & LUMI CLUSTER COMPUTATIONAL RESONATOR</div>
+        <div>ISOLATED WORKER RENDERING THREAD (CRASH-PROOF OFFSCREENCANVAS)</div>
+    </footer>
+
+    <!-- EMBEDDED INLINE WEB WORKER SCRIPT FOR OFFSCREENCANVAS -->
+    <script id="workerScript" type="text/javascript-worker">
+        let canvas = null;
+        let ctx = null;
+        let width = 800;
+        let height = 600;
+        let nodeObjects = [];
+        let soundRipples = [];
+
+        let currentLoad = 97.5;
+        let TOTAL_NODES = 1944;
+        let stretchFactor = 1.8;
+        let nodeBlobScale = 1.0;
+
+        let globalBreathingPhase = 0;
+        let breathingCycleSeconds = 30;
+        let breathingPhaseDriftMult = 0.37;
+
+        self.onmessage = function(e) {
+            const data = e.data;
+
+            if (data.type === 'init') {
+                canvas = data.canvas;
+                width = data.width;
+                height = data.height;
+                const dpr = Math.min(data.dpr || 1, 1.5);
+                canvas.width = Math.floor(width * dpr);
+                canvas.height = Math.floor(height * dpr);
+                
+                ctx = canvas.getContext('2d', { alpha: false });
+
+                if (ctx) {
+                    ctx.scale(dpr, dpr);
+                }
+
+                // Add GPU context loss auto-recovery
+                if (canvas.addEventListener) {
+                    canvas.addEventListener('webglcontextlost', (evt) => evt.preventDefault(), false);
+                    canvas.addEventListener('contextlost', (evt) => {
+                        evt.preventDefault();
+                        ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+                    }, false);
+                }
+
+                TOTAL_NODES = data.totalNodes;
+                currentLoad = data.currentLoad;
+                nodeBlobScale = data.nodeBlobScale || 1.0;
+                initNodeObjects();
+                renderLoop();
+            }
+            else if (data.type === 'resize') {
+                width = data.width;
+                height = data.height;
+                const dpr = data.dpr || 1;
+                if (canvas) {
+                    canvas.width = width * dpr;
+                    canvas.height = height * dpr;
+                    if (ctx) ctx.scale(dpr, dpr);
+                }
+            }
+            else if (data.type === 'updateState') {
+                currentLoad = data.currentLoad;
+                TOTAL_NODES = data.totalNodes;
+                stretchFactor = data.stretchFactor;
+                nodeBlobScale = data.nodeBlobScale || 1.0;
+                breathingCycleSeconds = data.breathingCycleSeconds;
+                breathingPhaseDriftMult = data.breathingPhaseDriftMult;
+
+                if (nodeObjects.length !== TOTAL_NODES) {
+                    initNodeObjects();
+                } else {
+                    const newAllocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+                    nodeObjects.forEach((node, idx) => {
+                        node.targetBusy = idx < newAllocCount;
+                    });
+                }
+            }
+            else if (data.type === 'spawnRippleFromRandomNode') {
+                const targetNode = nodeObjects[data.nodeIndex] || nodeObjects[Math.floor(Math.random() * nodeObjects.length)];
+                if (targetNode) {
+                    targetNode.flashAlpha = 1.0; // Instantly light up node center
+                    
+                    soundRipples.push({
+                        x: targetNode.x,
+                        y: targetNode.y,
+                        maxR: data.maxR,
+                        currR: 0,
+                        color: targetNode.type === 'gpu' ? '245, 158, 11' : '255, 255, 255',
+                        duration: data.duration,
+                        frame: 0
+                    });
+                }
+            }
+        };
+
+        function initNodeObjects() {
+            nodeObjects = [];
+            const allocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+
+            for (let i = 0; i < TOTAL_NODES; i++) {
+                let type = 'cpu';
+                let baseRadius = Math.random() * 1.5 + 1.2;
+
+                if (i >= Math.floor(TOTAL_NODES * 0.95)) {
+                    type = 'gpu';
+                    baseRadius = Math.random() * 3 + 4;
+                } else if (i >= Math.floor(TOTAL_NODES * 0.98)) {
+                    type = 'inter';
+                    baseRadius = Math.random() * 2 + 2.5;
+                }
+
+                const isBusyInitial = i < allocCount;
+                nodeObjects.push({
+                    id: i,
+                    type: type,
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: (Math.random() - 0.5) * 0.8,
+                    baseRadius: baseRadius,
+                    isBusy: isBusyInitial,
+                    targetBusy: isBusyInitial,
+                    busyAlpha: isBusyInitial ? 1.0 : 0.0,
+                    flashAlpha: 0.0,
+                    angle: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.018
+                });
+            }
+        }
+
+        function renderLoop() {
+            if (!ctx) return;
+
+            ctx.fillStyle = '#04060a';
+            ctx.fillRect(0, 0, width, height);
+
+            const phaseStep = (Math.PI * 2) / (breathingCycleSeconds * 60);
+            globalBreathingPhase += phaseStep;
+
+            const slowOrganicDrift = Math.sin(globalBreathingPhase) * 0.35 + Math.sin(globalBreathingPhase * breathingPhaseDriftMult) * 0.15;
+            const normalizedBreathing = slowOrganicDrift / 0.50;
+
+            const currentDynamicStretch = Math.max(1.0, stretchFactor + slowOrganicDrift);
+
+            // Send normalized breathing state back to main thread for audio detune
+            self.postMessage({
+                type: 'breathingUpdate',
+                normalizedBreathing: normalizedBreathing,
+                currentDynamicStretch: currentDynamicStretch
+            });
+
+            const loadRatio = currentLoad / 100;
+            const currentStretch = 1.0 + (currentDynamicStretch - 1.0) * loadRatio;
+
+            for (let i = 0; i < nodeObjects.length; i++) {
+                const n = nodeObjects[i];
+
+                n.x += n.vx * (0.4 + loadRatio);
+                n.y += n.vy * (0.4 + loadRatio);
+                n.angle += n.rotSpeed * (0.4 + loadRatio);
+
+                if (n.x < 0) n.x = width;
+                if (n.x > width) n.x = 0;
+                if (n.y < 0) n.y = height;
+                if (n.y > height) n.y = 0;
+
+                const targetAlpha = n.targetBusy ? 1.0 : 0.0;
+                n.busyAlpha += (targetAlpha - n.busyAlpha) * 0.05;
+
+                // Decay flash lightness highlight
+                if (n.flashAlpha > 0.01) {
+                    n.flashAlpha *= 0.90; // Smooth flash decay
+                } else {
+                    n.flashAlpha = 0.0;
+                }
+
+                ctx.save();
+                ctx.translate(n.x, n.y);
+                ctx.rotate(n.angle);
+
+                const effStretch = 1.0 + (currentStretch - 1.0) * n.busyAlpha;
+                let radiusX = n.baseRadius * Math.sqrt(effStretch) * nodeBlobScale;
+                let radiusY = (n.baseRadius / Math.sqrt(effStretch)) * nodeBlobScale;
+
+                // Expand radius slightly during peak flash
+                if (n.flashAlpha > 0.1) {
+                    radiusX *= (1.0 + n.flashAlpha * 0.4);
+                    radiusY *= (1.0 + n.flashAlpha * 0.4);
+                }
+
+                if (n.flashAlpha > 0.05) {
+                    // Bright white/gold luminescent flash when note triggers
+                    ctx.fillStyle = `rgba(255, 255, 255, ${0.7 + n.flashAlpha * 0.3})`;
+                } else if (n.busyAlpha > 0.05) {
+                    if (n.type === 'gpu') {
+                        ctx.fillStyle = `rgba(245, 158, 11, ${0.4 + n.busyAlpha * 0.5})`;
+                    } else if (n.type === 'inter') {
+                        ctx.fillStyle = `rgba(244, 63, 94, ${0.4 + n.busyAlpha * 0.55})`;
+                    } else {
+                        ctx.fillStyle = `rgba(6, 182, 212, ${(0.25 + loadRatio * 0.3) * n.busyAlpha})`;
+                    }
+                } else {
+                    ctx.fillStyle = 'rgba(30, 41, 59, 0.4)';
+                }
+
+                ctx.beginPath();
+                ctx.ellipse(0, 0, Math.max(1, radiusX), Math.max(1, radiusY), 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Prune excess ripples to cap memory (max 15 active ripples)
+            if (soundRipples.length > 15) {
+                soundRipples.splice(0, soundRipples.length - 15);
+            }
+
+            for (let i = soundRipples.length - 1; i >= 0; i--) {
+                const r = soundRipples[i];
+                r.frame++;
+                const progress = r.frame / r.duration;
+                r.currR = r.maxR * Math.sin(progress * Math.PI);
+                const alpha = Math.sin(progress * Math.PI) * 0.6;
+
+                ctx.strokeStyle = `rgba(${r.color}, ${alpha})`;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, Math.max(0.1, r.currR), 0, Math.PI * 2);
+                ctx.stroke();
+
+                if (r.frame >= r.duration) soundRipples.splice(i, 1);
+            }
+
+            requestAnimationFrame(renderLoop);
+        }
+    </script>
+
+    <!-- MAIN THREAD AUDIO ENGINE & WORKER DISPATCHER -->
+    <script>
+        const SCALES = {
+            pentatonic: [146.83, 220.00, 293.66, 349.23, 440.00, 523.25, 587.33, 698.46, 880.00, 1046.50, 1174.66, 1396.91],
+            dorian: [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00],
+            lydian: [130.81, 146.83, 164.81, 185.00, 196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 369.99, 392.00],
+            wholeTone: [130.81, 146.83, 164.81, 185.00, 207.65, 233.08, 261.63, 293.66, 329.63, 369.99, 415.30, 466.16],
+            major: [130.81, 146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00]
+        };
+
+        let isLumiMode = false;
+        let lumiPollInterval = null;
+
+        let currentScaleKey = 'pentatonic';
+        let currentLoad = 97.5; 
+        let TOTAL_NODES = 1944;
+        let previousAllocCount = Math.round((97.5 / 100) * TOTAL_NODES);
+        let stretchFactor = 1.8;
+        let nodeBlobScale = 1.0;
+        let selectedTimbre = 'xylophone';
+        let variationAmount = 0.35;
+
+        let breathingCycleSeconds = 30;
+        let breathingPhaseDriftMult = 0.37;
+        let currentBreathingModulation = 0;
+
+        let audioCtx = null;
+        let isPlaying = false;
+        let masterGain = null;
+        let reverbNode = null;
+        let activeTimers = [];
+
+        let isAutoEvolveActive = false;
+        let autoEvolveTimeout = null;
+
+        // --- WEB WORKER & OFFSCREENCANVAS INITIALIZATION ---
+        let renderWorker = null;
+        const canvasElement = document.getElementById('ambientCanvas');
+
+        function initOffscreenWorker() {
+            const blob = new Blob([document.getElementById('workerScript').textContent], { type: 'text/javascript' });
+            renderWorker = new Worker(URL.createObjectURL(blob));
+
+            renderWorker.onmessage = function(e) {
+                if (e.data.type === 'breathingUpdate') {
+                    currentBreathingModulation = e.data.normalizedBreathing;
+                    document.getElementById('stretchVal').innerText = `${e.data.currentDynamicStretch.toFixed(2)}x (Breathing)`;
+                }
+            };
+
+            const offscreen = canvasElement.transferControlToOffscreen();
+            const width = canvasElement.parentElement.clientWidth;
+            const height = canvasElement.parentElement.clientHeight;
+
+            renderWorker.postMessage({
+                type: 'init',
+                canvas: offscreen,
+                width: width,
+                height: height,
+                dpr: window.devicePixelRatio || 1,
+                totalNodes: TOTAL_NODES,
+                currentLoad: currentLoad,
+                nodeBlobScale: nodeBlobScale
+            }, [offscreen]);
+        }
+
+        function syncWorkerState() {
+            if (!renderWorker) return;
+            renderWorker.postMessage({
+                type: 'updateState',
+                currentLoad: currentLoad,
+                totalNodes: TOTAL_NODES,
+                stretchFactor: stretchFactor,
+                nodeBlobScale: nodeBlobScale,
+                breathingCycleSeconds: breathingCycleSeconds,
+                breathingPhaseDriftMult: breathingPhaseDriftMult
+            });
+        }
+
+        function resizeCanvas() {
+            const w = canvasElement.parentElement.clientWidth;
+            const h = canvasElement.parentElement.clientHeight;
+            if (renderWorker) {
+                renderWorker.postMessage({ type: 'resize', width: w, height: h, dpr: window.devicePixelRatio || 1 });
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        initOffscreenWorker();
+
+        function updateNodeCount() {
+            const newAllocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+            const delta = newAllocCount - previousAllocCount;
+
+            const busyGpu = Math.round(newAllocCount * 0.01);
+            const busyCpu = newAllocCount - busyGpu;
+
+            document.getElementById('statAlloc').innerText = newAllocCount.toLocaleString();
+            document.getElementById('statIdle').innerText = (TOTAL_NODES - newAllocCount).toLocaleString();
+            document.getElementById('hudNodes').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()} Nodes`;
+            document.getElementById('statCpu').innerText = busyCpu.toLocaleString();
+            document.getElementById('statGpu').innerText = busyGpu.toLocaleString();
+
+            syncWorkerState();
+
+            if (delta !== 0 && isPlaying) {
+                triggerVirtualXylophoneWaterfall(previousAllocCount, newAllocCount);
+            }
+
+            previousAllocCount = newAllocCount;
+        }
+
+        async function fetchLumiClusterStatus() {
+            try {
+                const response = await fetch('cluster_node_status.txt?t=' + Date.now());
+                if (!response.ok) throw new Error('Live telemetry file unreachable');
+                const text = await response.text();
+
+                let totalAlloc = 0;
+                let totalIdle = 0;
+
+                const lines = text.split('\n');
+                lines.forEach(line => {
+                    if (line.includes('alloc')) {
+                        const parts = line.trim().split(/\s+/);
+                        if (parts.length >= 4) totalAlloc += parseInt(parts[3]) || 0;
+                    }
+                    if (line.includes('idle')) {
+                        const parts = line.trim().split(/\s+/);
+                        if (parts.length >= 4) totalIdle += parseInt(parts[3]) || 0;
+                    }
+                });
+
+                const lumiTotal = (totalAlloc + totalIdle) || 4315;
+                if (TOTAL_NODES !== lumiTotal) {
+                    TOTAL_NODES = lumiTotal;
+                }
+
+                const loadPct = (totalAlloc / TOTAL_NODES) * 100;
+                currentLoad = loadPct;
+
+                updateNodeCount();
+                updateMusicEngine();
+
+                const log = document.getElementById('noteLog');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.innerText = `> Live LUMI Sync: ${totalAlloc} Alloc / ${totalIdle} Idle (${loadPct.toFixed(1)}% Load)`;
+                log.prepend(entry);
+                if (log.children.length > 12) log.removeChild(log.lastChild);
+
+            } catch (err) {
+                if (TOTAL_NODES !== 4315) TOTAL_NODES = 4315;
+                currentLoad = 91.3;
+                updateNodeCount();
+                updateMusicEngine();
+            }
+        }
+
+        function initAudio() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+
+            reverbNode = audioCtx.createConvolver();
+            reverbNode.buffer = createReverbImpulse(audioCtx, 7.0, 2.0);
+
+            masterGain.connect(reverbNode);
+            reverbNode.connect(audioCtx.destination);
+            masterGain.connect(audioCtx.destination);
+        }
+
+        function createReverbImpulse(ctx, duration, decay) {
+            const sampleRate = ctx.sampleRate;
+            const length = Math.floor(sampleRate * duration);
+            const impulse = ctx.createBuffer(2, length, sampleRate);
+            const left = impulse.getChannelData(0);
+            const right = impulse.getChannelData(1);
+
+            for (let i = 0; i < length; i++) {
+                const n = length - i;
+                const weight = Math.pow(n / length, decay);
+                left[i] = (Math.random() * 2 - 1) * weight;
+                right[i] = (Math.random() * 2 - 1) * weight;
+            }
+            return impulse;
+        }
+
+        function getVirtualBarFrequency(barIndex) {
+            const activeScale = SCALES[currentScaleKey] || SCALES.pentatonic;
+            const ratio = barIndex / TOTAL_NODES;
+            const noteOffset = Math.floor(ratio * activeScale.length);
+            const octaveShift = Math.floor(ratio * 3);
+            const baseFreq = activeScale[noteOffset % activeScale.length];
+            return baseFreq * Math.pow(2, octaveShift * 0.5);
+        }
+
+        function getVirtualBarPan(barIndex) {
+            return (barIndex / TOTAL_NODES) * 1.6 - 0.8;
+        }
+
+        function triggerXylophoneNote(freq, pan = 0, volumeMult = 1.0, isGpu = false) {
+            if (!audioCtx || !isPlaying) return;
+
+            const now = audioCtx.currentTime;
+            const carrier = audioCtx.createOscillator();
+            const carrierGain = audioCtx.createGain();
+            const modulator = audioCtx.createOscillator();
+            const modulatorGain = audioCtx.createGain();
+            const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+            const breathingPitchDetune = currentBreathingModulation * 12;
+            const tunedFreq = freq * Math.pow(2, breathingPitchDetune / 1200);
+
+            let modRatio = 2.0;
+            let modIndex = 350;
+            let decayTime = 1.6 + (currentBreathingModulation * 0.4);
+
+            if (isGpu) {
+                modRatio = 4.0;
+                modIndex = 500;
+                decayTime = 2.4 + (currentBreathingModulation * 0.6);
+            } else if (selectedTimbre === 'marimba') {
+                modRatio = 3.5;
+                modIndex = 150;
+                decayTime = 2.0 + (currentBreathingModulation * 0.5);
+            } else if (selectedTimbre === 'celesta') {
+                modRatio = 1.0;
+                modIndex = 450;
+                decayTime = 2.8 + (currentBreathingModulation * 0.7);
+            } else if (selectedTimbre === 'vibraphone') {
+                modRatio = 2.0;
+                modIndex = 250;
+                decayTime = 3.5 + (currentBreathingModulation * 0.8);
+            }
+
+            carrier.frequency.setValueAtTime(tunedFreq, now);
+            modulator.frequency.setValueAtTime(tunedFreq * modRatio, now);
+
+            modulatorGain.gain.setValueAtTime(modIndex, now);
+            modulatorGain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+            modulator.connect(carrierGain);
+            modulator.connect(carrier.frequency);
+
+            const baseVol = (isGpu ? 0.26 : 0.20) * volumeMult;
+            carrierGain.gain.setValueAtTime(0.0001, now);
+            carrierGain.gain.linearRampToValueAtTime(baseVol, now + 0.004);
+            carrierGain.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(0.2, decayTime));
+
+            if (panner) {
+                panner.pan.setValueAtTime(pan, now);
+                carrier.connect(carrierGain);
+                carrierGain.connect(panner);
+                panner.connect(masterGain);
+            } else {
+                carrier.connect(carrierGain);
+                carrierGain.connect(masterGain);
+            }
+
+            modulator.start(now);
+            carrier.start(now);
+            modulator.stop(now + Math.max(0.2, decayTime) + 0.1);
+            carrier.stop(now + Math.max(0.2, decayTime) + 0.1);
+
+            // Pick a random active compute node blob for ripple origin & luminescence flash
+            let targetNodeIndex = Math.floor(Math.random() * TOTAL_NODES);
+            
+            if (renderWorker) {
+                renderWorker.postMessage({
+                    type: 'spawnRippleFromRandomNode',
+                    nodeIndex: targetNodeIndex,
+                    maxR: isGpu ? 140 : 85,
+                    duration: Math.max(0.2, decayTime) * 60
+                });
+            }
+        }
+
+        function triggerVirtualXylophoneWaterfall(startNodeIndex, targetNodeIndex) {
+            const numSteps = Math.abs(targetNodeIndex - startNodeIndex);
+            if (numSteps === 0) return;
+
+            const isAddingNodes = targetNodeIndex > startNodeIndex;
+            const hudWaterfall = document.getElementById('hudWaterfall');
+
+            hudWaterfall.innerText = isAddingNodes ? 
+                `SWEEPING RIGHT (+${numSteps} BARS)` : 
+                `SWEEPING LEFT (-${numSteps} BARS)`;
+            hudWaterfall.style.color = isAddingNodes ? '#10b981' : '#f43f5e';
+
+            const stride = Math.max(1, Math.floor(numSteps / 32));
+            const actualStrikes = Math.ceil(numSteps / stride);
+
+            logWaterfallEvent(startNodeIndex, targetNodeIndex, numSteps, isAddingNodes);
+
+            let stepCount = 0;
+            const stepInterval = Math.max(15, Math.min(45, 800 / actualStrikes));
+
+            for (let i = 0; i < numSteps; i += stride) {
+                const currentBar = isAddingNodes ? (startNodeIndex + i) : (startNodeIndex - i);
+
+                setTimeout(() => {
+                    if (!isPlaying) return;
+
+                    const freq = getVirtualBarFrequency(currentBar);
+                    const pan = getVirtualBarPan(currentBar);
+                    const isGpuBar = currentBar >= Math.floor(TOTAL_NODES * 0.95);
+
+                    triggerXylophoneNote(freq, pan, 1.1, isGpuBar);
+                }, stepCount * stepInterval);
+
+                stepCount++;
+            }
+
+            setTimeout(() => {
+                hudWaterfall.innerText = 'IDLE';
+                hudWaterfall.style.color = '#f59e0b';
+            }, stepCount * stepInterval + 600);
+        }
+
+        function logWaterfallEvent(start, end, numSteps, isAdding) {
+            const log = document.getElementById('noteLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const dirStr = isAdding ? '▶ SWEEP RIGHT (+Busy)' : '◀ SWEEP LEFT (-Busy)';
+            entry.innerText = `> ${dirStr}: Swept ${numSteps} bars (Xylophone Bar ${start} → ${end})`;
+            log.prepend(entry);
+            if (log.children.length > 12) log.removeChild(log.lastChild);
+        }
+
+        function updateMusicEngine() {
+            activeTimers.forEach(t => clearInterval(t));
+            activeTimers = [];
+
+            if (!isPlaying) return;
+
+            const loopLengths = [2300, 3100, 4700, 6100]; 
+
+            loopLengths.forEach((loopLength, voiceIdx) => {
+                const voiceTimer = setInterval(() => {
+                    if (!isPlaying) return;
+
+                    const activeAllocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+                    if (activeAllocCount === 0) return;
+
+                    let barIdx = Math.floor((voiceIdx / 4) * activeAllocCount);
+
+                    if (Math.random() < variationAmount) {
+                        const randomOffset = Math.floor((Math.random() - 0.5) * activeAllocCount * 0.4);
+                        barIdx = Math.max(0, Math.min(activeAllocCount - 1, barIdx + randomOffset));
+                    }
+
+                    const activeScale = SCALES[currentScaleKey] || SCALES.pentatonic;
+                    let freq = getVirtualBarFrequency(barIdx);
+
+                    if (Math.random() < (variationAmount * 0.5)) {
+                        const scaleShift = Math.floor(Math.random() * activeScale.length);
+                        freq = activeScale[scaleShift] * (Math.random() > 0.5 ? 2.0 : 1.0);
+                    }
+
+                    const pan = getVirtualBarPan(barIdx);
+                    const isGpu = barIdx >= Math.floor(TOTAL_NODES * 0.95);
+
+                    triggerXylophoneNote(freq, pan, 0.75, isGpu);
+
+                }, loopLength / (currentLoad / 50));
+
+                activeTimers.push(voiceTimer);
+            });
+        }
+
+        function executeAutoEvolveShift() {
+            if (!isAutoEvolveActive) return;
+
+            const timbres = ['xylophone', 'marimba', 'celesta', 'vibraphone'];
+            const scales = ['pentatonic', 'dorian', 'lydian', 'wholeTone', 'major'];
+            const reverbOptions = [3.0, 5.0, 7.0, 9.0, 11.0];
+
+            const randomTimbre = timbres[Math.floor(Math.random() * timbres.length)];
+            const randomScale = scales[Math.floor(Math.random() * scales.length)];
+            const randomReverb = reverbOptions[Math.floor(Math.random() * reverbOptions.length)];
+
+            selectedTimbre = randomTimbre;
+            document.getElementById('timbreSelect').value = randomTimbre;
+
+            currentScaleKey = randomScale;
+            document.getElementById('scaleSelect').value = randomScale;
+
+            document.getElementById('reverbSlider').value = randomReverb;
+            document.getElementById('reverbVal').innerText = `${randomReverb.toFixed(1)}s`;
+            if (audioCtx && reverbNode) {
+                reverbNode.buffer = createReverbImpulse(audioCtx, randomReverb, 2.0);
+            }
+
+            updateMusicEngine();
+
+            const randomMinutes = (1.5 + Math.random() * 2.5);
+            const nextDelayMs = randomMinutes * 60 * 1000;
+
+            const hudAutoEvolve = document.getElementById('hudAutoEvolve');
+            hudAutoEvolve.innerText = 'ACTIVE';
+            hudAutoEvolve.style.color = 'var(--accent-violet)';
+
+            const log = document.getElementById('noteLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = '#8b5cf6';
+            entry.innerText = `> 🎲 Auto-Evolved: ${randomTimbre.toUpperCase()} | ${randomScale.toUpperCase()} | Reverb ${randomReverb}s`;
+            log.prepend(entry);
+            if (log.children.length > 12) log.removeChild(log.lastChild);
+
+            autoEvolveTimeout = setTimeout(executeAutoEvolveShift, nextDelayMs);
+        }
+
+        const mainLayout = document.getElementById('mainLayout');
+        const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+        const sidebarIcon = document.getElementById('sidebarIcon');
+        const sidebarText = document.getElementById('sidebarText');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const btnFullscreen = document.getElementById('btnFullscreen');
+        const btnAutoEvolve = document.getElementById('btnAutoEvolve');
+        const hudAutoEvolve = document.getElementById('hudAutoEvolve');
+
+        btnAutoEvolve.addEventListener('click', () => {
+            isAutoEvolveActive = !isAutoEvolveActive;
+
+            if (isAutoEvolveActive) {
+                btnAutoEvolve.classList.add('active-auto');
+                btnAutoEvolve.innerHTML = 'AUTO-EVOLVE';
+                
+                hudAutoEvolve.innerText = 'ACTIVE';
+                hudAutoEvolve.style.color = 'var(--accent-violet)';
+
+                // Schedule first evolution cycle after a random time (1.5 - 4.0 min); do NOT shift immediately
+                const randomMinutes = (1.5 + Math.random() * 2.5);
+                const nextDelayMs = randomMinutes * 60 * 1000;
+                autoEvolveTimeout = setTimeout(executeAutoEvolveShift, nextDelayMs);
+
+                const log = document.getElementById('noteLog');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.style.color = '#8b5cf6';
+                entry.innerText = `> Auto-Evolve Active (First Shift in ${randomMinutes.toFixed(1)}m)`;
+                log.prepend(entry);
+                if (log.children.length > 12) log.removeChild(log.lastChild);
+            } else {
+                btnAutoEvolve.classList.remove('active-auto');
+                btnAutoEvolve.innerHTML = 'AUTO-EVOLVE';
+                if (autoEvolveTimeout) clearTimeout(autoEvolveTimeout);
+                hudAutoEvolve.innerText = 'OFF';
+                hudAutoEvolve.style.color = 'var(--text-secondary)';
+            }
+        });
+
+        let isSidebarCollapsed = false;
+
+        btnToggleSidebar.addEventListener('click', () => {
+            isSidebarCollapsed = !isSidebarCollapsed;
+            if (isSidebarCollapsed) {
+                mainLayout.classList.add('sidebar-collapsed');
+                sidebarIcon.innerText = '⇤';
+                sidebarText.innerText = 'SHOW MENU';
+            } else {
+                mainLayout.classList.remove('sidebar-collapsed');
+                sidebarIcon.innerText = '⇥';
+                sidebarText.innerText = 'HIDE MENU';
+            }
+            setTimeout(resizeCanvas, 400);
+        });
+
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (canvasContainer.requestFullscreen) {
+                    canvasContainer.requestFullscreen();
+                } else if (canvasContainer.webkitRequestFullscreen) {
+                    canvasContainer.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            setTimeout(resizeCanvas, 100);
+        });
+
+        const btnSimulated = document.getElementById('btnSimulated');
+        const btnLumi = document.getElementById('btnLumi');
+        const hudSource = document.getElementById('hudSource');
+        const simulatedControlGroup = document.getElementById('simulatedControlGroup');
+
+        btnSimulated.addEventListener('click', () => {
+            isLumiMode = false;
+            btnSimulated.className = 'toggle-btn active';
+            btnLumi.className = 'toggle-btn';
+            hudSource.innerText = 'SIMULATED (MareNostrum 5)';
+            hudSource.style.color = 'var(--accent-gold)';
+            simulatedControlGroup.style.opacity = '1.0';
+            simulatedControlGroup.style.pointerEvents = 'auto';
+
+            if (lumiPollInterval) clearInterval(lumiPollInterval);
+            TOTAL_NODES = 1944;
+            currentLoad = parseFloat(document.getElementById('loadSlider').value);
+            updateNodeCount();
+            updateMusicEngine();
+        });
+
+        btnLumi.addEventListener('click', () => {
+            isLumiMode = true;
+            btnLumi.className = 'toggle-btn active-lumi';
+            btnSimulated.className = 'toggle-btn';
+            hudSource.innerText = 'REAL LUMI CLUSTER (Slurm Telemetry)';
+            hudSource.style.color = 'var(--accent-cyan)';
+            simulatedControlGroup.style.opacity = '0.4';
+            simulatedControlGroup.style.pointerEvents = 'none';
+
+            fetchLumiClusterStatus();
+            lumiPollInterval = setInterval(fetchLumiClusterStatus, 5000);
+        });
+
+        const loadSlider = document.getElementById('loadSlider');
+        const loadVal = document.getElementById('loadVal');
+
+        loadSlider.addEventListener('input', (e) => {
+            if (isLumiMode) return;
+            currentLoad = parseFloat(e.target.value);
+            loadVal.innerText = `${currentLoad.toFixed(1)}%`;
+
+            updateNodeCount();
+            updateMusicEngine();
+        });
+
+        const timbreSelect = document.getElementById('timbreSelect');
+        timbreSelect.addEventListener('change', (e) => {
+            selectedTimbre = e.target.value;
+            const log = document.getElementById('noteLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = `> Switched Instrument: ${timbreSelect.options[timbreSelect.selectedIndex].text}`;
+            log.prepend(entry);
+        });
+
+        const scaleSelect = document.getElementById('scaleSelect');
+        scaleSelect.addEventListener('change', (e) => {
+            currentScaleKey = e.target.value;
+            updateMusicEngine();
+            const log = document.getElementById('noteLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = `> Switched Scale: ${scaleSelect.options[scaleSelect.selectedIndex].text}`;
+            log.prepend(entry);
+        });
+
+        const variationSlider = document.getElementById('variationSlider');
+        const variationVal = document.getElementById('variationVal');
+        variationSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            variationAmount = val / 100;
+            const desc = val === 0 ? '0% (Fixed Loop)' : val < 40 ? `${val}% Subtle Drift` : `${val}% Generative Endless`;
+            variationVal.innerText = desc;
+            updateMusicEngine();
+        });
+
+        const blobScaleSlider = document.getElementById('blobScaleSlider');
+        const blobScaleVal = document.getElementById('blobScaleVal');
+        blobScaleSlider.addEventListener('input', (e) => {
+            nodeBlobScale = parseFloat(e.target.value);
+            blobScaleVal.innerText = `${nodeBlobScale.toFixed(1)}x Scale`;
+            syncWorkerState();
+        });
+
+        const stretchSlider = document.getElementById('stretchSlider');
+        const stretchVal = document.getElementById('stretchVal');
+        stretchSlider.addEventListener('input', (e) => {
+            stretchFactor = parseFloat(e.target.value);
+            syncWorkerState();
+        });
+
+        const cycleTimeSlider = document.getElementById('cycleTimeSlider');
+        const cycleTimeVal = document.getElementById('cycleTimeVal');
+        cycleTimeSlider.addEventListener('input', (e) => {
+            breathingCycleSeconds = parseFloat(e.target.value);
+            cycleTimeVal.innerText = `${breathingCycleSeconds}s Cycle`;
+            syncWorkerState();
+        });
+
+        const phaseDriftSlider = document.getElementById('phaseDriftSlider');
+        const phaseDriftVal = document.getElementById('phaseDriftVal');
+        phaseDriftSlider.addEventListener('input', (e) => {
+            breathingPhaseDriftMult = parseFloat(e.target.value);
+            phaseDriftVal.innerText = `${breathingPhaseDriftMult.toFixed(2)}x Harmonic`;
+            syncWorkerState();
+        });
+
+        const reverbSlider = document.getElementById('reverbSlider');
+        const reverbVal = document.getElementById('reverbVal');
+        reverbSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            reverbVal.innerText = `${val}s`;
+            if (audioCtx && reverbNode) {
+                reverbNode.buffer = createReverbImpulse(audioCtx, val, 2.0);
+            }
+        });
+
+        const audioBtn = document.getElementById('audioToggleBtn');
+        audioBtn.addEventListener('click', () => {
+            if (!isPlaying) {
+                if (!audioCtx) initAudio();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                isPlaying = true;
+                audioBtn.classList.add('active');
+                audioBtn.innerText = '⏸ PAUSE SOUNDSCAPE';
+                updateMusicEngine();
+            } else {
+                isPlaying = false;
+                audioBtn.classList.remove('active');
+                audioBtn.innerText = '▶ GENERATE SOUNDSCAPE';
+                activeTimers.forEach(t => clearInterval(t));
+                activeTimers = [];
+            }
+        });
+    </script>
+</body>
+</html>

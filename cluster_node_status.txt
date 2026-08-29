@@ -1,0 +1,14 @@
+==========================================
+  HPC NODE STATUS REPORT (LUMI CLUSTER LIVE FEED)
+==========================================
+
+------------------------------------------
+$ sinfo
+------------------------------------------
+PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
+standard     up 2-00:00:00   1540  alloc lumi-[1001-2540]
+standard     up 2-00:00:00    210   idle lumi-[2541-2750]
+gpu          up 2-00:00:00   2400  alloc lumi-gpu-[1001-3400]
+gpu          up 2-00:00:00    160   idle lumi-gpu-[3401-3560]
+interactive  up 7-00:00:00     45    mix lumi-int-[1-45]
+interactive  up 7-00:00:00      5   idle lumi-int-[46-50]
