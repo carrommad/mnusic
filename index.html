@@ -641,10 +641,14 @@
             const phaseStep = (Math.PI * 2) / (breathingCycleSeconds * 60);
             globalBreathingPhase += phaseStep;
 
-            // Organic breathing modulation with dynamic amplitude expansion
-            const slowOrganicDrift = (Math.sin(globalBreathingPhase) * 0.50 + Math.sin(globalBreathingPhase * breathingPhaseDriftMult) * 0.35) * (stretchFactor - 1.0) * 0.6;
-            const normalizedBreathing = Math.max(-1.0, Math.min(1.0, slowOrganicDrift / 0.50));
-
+            // Scale breathing amplitude directly with Phase Drift slider (1.00x harmonic = max possible stretch oscillation 1.0x -> 3.0x)
+            const harmonicDepth = breathingPhaseDriftMult; // 0.10 to 1.00
+            const maxAmplitude = (stretchFactor - 1.0) * harmonicDepth;
+            
+            const wave = (Math.sin(globalBreathingPhase) * 0.65 + Math.sin(globalBreathingPhase * breathingPhaseDriftMult) * 0.35);
+            const slowOrganicDrift = wave * maxAmplitude;
+            
+            const normalizedBreathing = Math.max(-1.0, Math.min(1.0, wave));
             const currentDynamicStretch = Math.max(1.0, stretchFactor + slowOrganicDrift);
 
             // Send normalized breathing state back to main thread for audio detune
