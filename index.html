@@ -614,38 +614,46 @@
         };
 
         function initNodeObjects() {
-            nodeObjects = [];
-            // Scale render count proportionally so 100% load = 1,200 particles, while 5% load = 60 particles
-            const MAX_VISUAL_PARTICLES = 1200;
-            const targetVisualCount = Math.round((currentLoad / 100) * MAX_VISUAL_PARTICLES);
+            // Keep fixed node array and toggle active rendering via busyAlpha
+            if (nodeObjects.length !== TOTAL_NODES) {
+                nodeObjects = [];
+                for (let i = 0; i < TOTAL_NODES; i++) {
+                    let type = 'cpu';
+                    let baseRadius = Math.random() * 1.5 + 1.2;
 
-            for (let i = 0; i < targetVisualCount; i++) {
-                let type = 'cpu';
-                let baseRadius = Math.random() * 1.5 + 1.2;
+                    if (i % 25 === 0) {
+                        type = 'gpu'; // Interleaved GPU A100 node (vibrant gold)
+                        baseRadius = Math.random() * 3 + 4.5;
+                    } else if (i % 65 === 0) {
+                        type = 'inter';
+                        baseRadius = Math.random() * 2 + 2.5;
+                    }
 
-                if (i % 25 === 0) {
-                    type = 'gpu'; // Interleaved GPU A100 node (vibrant gold)
-                    baseRadius = Math.random() * 3 + 4.5;
-                } else if (i % 65 === 0) {
-                    type = 'inter';
-                    baseRadius = Math.random() * 2 + 2.5;
+                    nodeObjects.push({
+                        id: i,
+                        type: type,
+                        x: Math.random() * (width || 1200),
+                        y: Math.random() * (height || 800),
+                        vx: (Math.random() - 0.5) * 0.8,
+                        vy: (Math.random() - 0.5) * 0.8,
+                        baseRadius: baseRadius,
+                        isBusy: true,
+                        targetBusy: true,
+                        busyAlpha: 1.0,
+                        flashAlpha: 0.0,
+                        angle: Math.random() * Math.PI * 2,
+                        rotSpeed: (Math.random() - 0.5) * 0.018
+                    });
                 }
+            }
 
-                nodeObjects.push({
-                    id: i,
-                    type: type,
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.8,
-                    vy: (Math.random() - 0.5) * 0.8,
-                    baseRadius: baseRadius,
-                    isBusy: true,
-                    targetBusy: true,
-                    busyAlpha: 1.0,
-                    flashAlpha: 0.0,
-                    angle: Math.random() * Math.PI * 2,
-                    rotSpeed: (Math.random() - 0.5) * 0.018
-                });
+            // Update busy state for all nodes based on currentLoad
+            const allocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+            for (let i = 0; i < nodeObjects.length; i++) {
+                const node = nodeObjects[i];
+                const isAllocated = i < allocCount;
+                node.targetBusy = isAllocated;
+                node.busyAlpha = isAllocated ? 1.0 : 0.0; // Force immediate alpha 0 for unallocated nodes
             }
         }
 
