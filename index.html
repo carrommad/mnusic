@@ -614,47 +614,37 @@
         };
 
         function initNodeObjects() {
-            // Keep fixed node array and toggle active rendering via busyAlpha
-            if (nodeObjects.length !== TOTAL_NODES) {
-                nodeObjects = [];
-                for (let i = 0; i < TOTAL_NODES; i++) {
-                    let type = 'cpu';
-                    let baseRadius = Math.random() * 1.5 + 1.2;
-
-                    const randType = Math.random();
-                    if (randType < 0.025) {
-                        type = 'gpu'; // Interleaved GPU A100 node (vibrant gold)
-                        baseRadius = Math.random() * 3 + 4.5;
-                    } else if (randType < 0.065) {
-                        type = 'inter'; // Interactive note-striking node
-                        baseRadius = Math.random() * 2 + 2.5;
-                    }
-
-                    nodeObjects.push({
-                        id: i,
-                        type: type,
-                        x: Math.random() * (width || 1200),
-                        y: Math.random() * (height || 800),
-                        vx: (Math.random() - 0.5) * 0.8,
-                        vy: (Math.random() - 0.5) * 0.8,
-                        baseRadius: baseRadius,
-                        isBusy: true,
-                        targetBusy: true,
-                        busyAlpha: 1.0,
-                        flashAlpha: 0.0,
-                        angle: Math.random() * Math.PI * 2,
-                        rotSpeed: (Math.random() - 0.5) * 0.018
-                    });
-                }
-            }
-
-            // Update busy state for all nodes based on currentLoad
+            nodeObjects = [];
             const allocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
-            for (let i = 0; i < nodeObjects.length; i++) {
-                const node = nodeObjects[i];
-                const isAllocated = i < allocCount;
-                node.targetBusy = isAllocated;
-                node.busyAlpha = isAllocated ? 1.0 : 0.0; // Force immediate alpha 0 for unallocated nodes
+
+            for (let i = 0; i < allocCount; i++) {
+                let type = 'cpu';
+                let baseRadius = Math.random() * 1.5 + 1.2;
+
+                const randType = Math.random();
+                if (randType < 0.025) {
+                    type = 'gpu'; // Interleaved GPU A100 node (vibrant gold)
+                    baseRadius = Math.random() * 3 + 4.5;
+                } else if (randType < 0.065) {
+                    type = 'inter'; // Interactive note-striking node
+                    baseRadius = Math.random() * 2 + 2.5;
+                }
+
+                nodeObjects.push({
+                    id: i,
+                    type: type,
+                    x: Math.random() * (width || 1200),
+                    y: Math.random() * (height || 800),
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: (Math.random() - 0.5) * 0.8,
+                    baseRadius: baseRadius,
+                    isBusy: true,
+                    targetBusy: true,
+                    busyAlpha: 1.0,
+                    flashAlpha: 0.0,
+                    angle: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.018
+                });
             }
         }
 
