@@ -1092,17 +1092,22 @@
 
                 const lines = text.split('\n');
                 lines.forEach(line => {
-                    if (line.includes('alloc')) {
-                        const parts = line.trim().split(/\s+/);
-                        if (parts.length >= 4) totalAlloc += parseInt(parts[3]) || 0;
-                    }
-                    if (line.includes('idle')) {
-                        const parts = line.trim().split(/\s+/);
-                        if (parts.length >= 4) totalIdle += parseInt(parts[3]) || 0;
+                    const parts = line.trim().split(/\s+/);
+                    if (parts.length >= 5) {
+                        const state = parts[4].toLowerCase();
+                        const count = parseInt(parts[3]) || 0;
+                        if (state.includes('alloc')) {
+                            totalAlloc += count;
+                        } else if (state.includes('idle')) {
+                            totalIdle += count;
+                        } else if (state.includes('mix')) {
+                            totalAlloc += Math.round(count * 0.7);
+                            totalIdle += Math.round(count * 0.3);
+                        }
                     }
                 });
 
-                const lumiTotal = (totalAlloc + totalIdle) || 4315;
+                const lumiTotal = (totalAlloc + totalIdle) || 4360;
                 if (TOTAL_NODES !== lumiTotal) {
                     TOTAL_NODES = lumiTotal;
                 }
