@@ -314,6 +314,8 @@
         .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 500; }
         .val-gold { color: var(--accent-gold); }
         .val-cyan { color: var(--accent-cyan); }
+        .val-rose { color: #f43f5e; }
+        .val-slate { color: #64748b; }
 
         .note-log {
             font-family: 'JetBrains Mono', monospace;
@@ -482,19 +484,19 @@
                 <div class="stat-grid">
                     <div class="stat-box">
                         <div class="stat-label">CPU PAR</div>
-                        <div class="stat-val val-cyan" id="statCpu">1,875</div>
+                        <div class="stat-val val-cyan" id="statCpu">1,875 / 1,895</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">GPU A100</div>
-                        <div class="stat-val val-gold" id="statGpu">18</div>
+                        <div class="stat-val val-gold" id="statGpu">18 / 20</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">BUSY NODES</div>
-                        <div class="stat-val val-gold" id="statAlloc">1,895</div>
+                        <div class="stat-label">INTERACTIVE</div>
+                        <div class="stat-val val-rose" id="statInter">2 / 29</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">IDLE NODES</div>
-                        <div class="stat-val" style="color:#64748b;" id="statIdle">49</div>
+                        <div class="stat-val val-slate" id="statIdle">49 / 1,944</div>
                     </div>
                 </div>
             </div>
@@ -1064,14 +1066,20 @@
             const newAllocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
             const delta = newAllocCount - previousAllocCount;
 
-            const busyGpu = Math.round(newAllocCount * 0.01);
-            const busyCpu = newAllocCount - busyGpu;
+            const totalGpu = Math.round(TOTAL_NODES * 0.03);
+            const totalInter = Math.round(TOTAL_NODES * 0.05);
+            const totalCpu = TOTAL_NODES - totalGpu - totalInter;
 
-            document.getElementById('statAlloc').innerText = newAllocCount.toLocaleString();
-            document.getElementById('statIdle').innerText = (TOTAL_NODES - newAllocCount).toLocaleString();
+            const busyGpu = Math.min(totalGpu, Math.round(newAllocCount * 0.03));
+            const busyInter = Math.min(totalInter, Math.round(newAllocCount * 0.05));
+            const busyCpu = Math.max(0, newAllocCount - busyGpu - busyInter);
+            const idleNodes = TOTAL_NODES - newAllocCount;
+
             document.getElementById('hudNodes').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()} Nodes`;
-            document.getElementById('statCpu').innerText = busyCpu.toLocaleString();
-            document.getElementById('statGpu').innerText = busyGpu.toLocaleString();
+            document.getElementById('statCpu').innerText = `${busyCpu.toLocaleString()} / ${totalCpu.toLocaleString()}`;
+            document.getElementById('statGpu').innerText = `${busyGpu.toLocaleString()} / ${totalGpu.toLocaleString()}`;
+            document.getElementById('statInter').innerText = `${busyInter.toLocaleString()} / ${totalInter.toLocaleString()}`;
+            document.getElementById('statIdle').innerText = `${idleNodes.toLocaleString()} / ${TOTAL_NODES.toLocaleString()}`;
 
             syncWorkerState();
 
