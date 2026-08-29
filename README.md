@@ -18,15 +18,15 @@
   - **Simulated MN5 Cluster Mode**: Interactive simulation model representing MareNostrum 5 (1,944 nodes).
   - **Real LUMI Cluster Mode**: Live Slurm telemetry parser fetching active vs. idle nodes directly from `cluster_node_status.txt` (4,315+ nodes).
 - ** Crash-Proof OffscreenCanvas Web Worker**:
-  - Offloads 60 FPS particle trajectory calculations, volume-conserving ellipsoid stretch transformations, and canvas rendering to an isolated Web Worker thread.
+  - Offloads 60 FPS particle trajectory calculations, volume-conserving ellipsoid stretch transformations, and canvas rendering to an isolated Web Worker thread with persistent node pool allocation and instant real-time density filtering (`busyAlpha`).
 - ** Proportional Virtual Xylophone Waterfall**:
   - Triggers 1:1 glissando sweeps across the stereo pan field proportional to changes in busy node counts.
 - ** Brian Eno-Inspired Generative Drift Engine**:
   - 4-voice asynchronous poly-phase tape loops with generative pitch mutation and micro-detuning.
 - ** Dynamic Volumetric Stretch & Acoustic Breathing**:
   - Continuous compound sine-wave breathing animation that modulates note pitch ($\pm 12$ cents) and reverb decay duration in sync with visual ellipsoid morphing.
-- ** Synchronized Node Luminescence**:
-  - Acoustic note strikes trigger a bright white-gold luminescence flash at the exact center node blob from which expanding acoustic ripples originate.
+- ** Synchronized Node Luminescence & Expanding Acoustic Ripples**:
+  - Acoustic note strikes and node reallocations trigger a bright white-gold luminescence flash at the exact center node blob, generating anchored expanding acoustic circumferences across the canvas.
 - ** Generative AUTO-EVOLVE Engine**:
   - Autonomous background engine that periodically shifts instrument timbres, harmonic scales, and reverb decay settings over random intervals (1.5 to 4.0 minutes).
 - ** Contemporary Responsive UI**:
