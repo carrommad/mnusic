@@ -516,6 +516,9 @@
         let stretchFactor = 1.8;
         let nodeBlobScale = 1.0;
 
+        let mouseX = -1000;
+        let mouseY = -1000;
+
         let globalBreathingPhase = 0;
         let breathingCycleSeconds = 30;
         let breathingPhaseDriftMult = 0.37;
@@ -523,7 +526,11 @@
         self.onmessage = function(e) {
             const data = e.data;
 
-            if (data.type === 'init') {
+            if (data.type === 'mouseMove') {
+                mouseX = data.x;
+                mouseY = data.y;
+            }
+            else if (data.type === 'init') {
                 canvas = data.canvas;
                 width = data.width;
                 height = data.height;
@@ -663,6 +670,25 @@
 
             for (let i = 0; i < nodeObjects.length; i++) {
                 const n = nodeObjects[i];
+
+                // --- INTERACTIVE FLUID MOUSE FORCE FIELD ---
+                if (mouseX >= 0 && mouseY >= 0) {
+                    const dx = n.x - mouseX;
+                    const dy = n.y - mouseY;
+                    const distSq = dx * dx + dy * dy;
+                    const forceRadius = 140; // 140px fluid influence radius
+                    
+                    if (distSq < forceRadius * forceRadius && distSq > 1) {
+                        const dist = Math.sqrt(distSq);
+                        const force = (1.0 - dist / forceRadius) * 2.2; // Repelling force strength
+                        n.vx += (dx / dist) * force;
+                        n.vy += (dy / dist) * force;
+                    }
+                }
+
+                // Apply velocity damping to return smoothly to natural cluster drift
+                n.vx *= 0.96;
+                n.vy *= 0.96;
 
                 n.x += n.vx * (0.4 + loadRatio);
                 n.y += n.vy * (0.4 + loadRatio);
@@ -831,6 +857,22 @@
             }
         }
         window.addEventListener('resize', resizeCanvas);
+
+        canvasElement.parentElement.addEventListener('mousemove', (e) => {
+            const rect = canvasElement.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            if (renderWorker) {
+                renderWorker.postMessage({ type: 'mouseMove', x: x, y: y });
+            }
+        });
+
+        canvasElement.parentElement.addEventListener('mouseleave', () => {
+            if (renderWorker) {
+                renderWorker.postMessage({ type: 'mouseMove', x: -1000, y: -1000 });
+            }
+        });
+
         initOffscreenWorker();
 
         function updateNodeCount() {
