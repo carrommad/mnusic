@@ -724,6 +724,19 @@
                             n1.rotSpeed += (Math.random() - 0.5) * 0.02 * (collisionPercent / 50.0);
                             n2.rotSpeed += (Math.random() - 0.5) * 0.02 * (collisionPercent / 50.0);
 
+                            // Spawn small delicate collision circumference (maxR: 25px)
+                            if (soundRipples.length < 20 && Math.random() < 0.4) {
+                                soundRipples.push({
+                                    x: (n1.x + n2.x) * 0.5,
+                                    y: (n1.y + n2.y) * 0.5,
+                                    maxR: 25,
+                                    currR: 0,
+                                    color: '148, 163, 184', // Soft slate silver
+                                    duration: 25,
+                                    frame: 0
+                                });
+                            }
+
                             sparkCount++;
                         }
                     }
@@ -943,12 +956,13 @@
             const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
 
             osc.type = 'triangle';
-            osc.frequency.setValueAtTime(freq * 0.75, now);
+            osc.frequency.setValueAtTime(freq * 1.5, now);
+            osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + 0.08);
 
-            // Soft wooden click/spark envelope
+            // Organic wooden impact click envelope
             gain.gain.setValueAtTime(0.001, now);
-            gain.gain.exponentialRampToValueAtTime(Math.min(0.03, 0.01 * count), now + 0.005);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+            gain.gain.exponentialRampToValueAtTime(Math.min(0.04, 0.015 * count), now + 0.004);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
 
             osc.connect(gain);
             if (panner) {
@@ -960,7 +974,7 @@
             }
 
             osc.start(now);
-            osc.stop(now + 0.13);
+            osc.stop(now + 0.10);
         }
 
         function initOffscreenWorker() {
