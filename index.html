@@ -596,7 +596,14 @@
                 } else {
                     const newAllocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
                     nodeObjects.forEach((node, idx) => {
-                        node.targetBusy = idx < newAllocCount;
+                        const isAlloc = idx < newAllocCount;
+                        node.targetBusy = isAlloc;
+                        // Instantly adjust busyAlpha when load is modified so visual response is immediate
+                        if (!isAlloc) {
+                            node.busyAlpha = 0.0;
+                        } else if (node.busyAlpha < 0.2) {
+                            node.busyAlpha = 1.0;
+                        }
                     });
                 }
             }
@@ -832,11 +839,6 @@
                         ctx.fillStyle = `rgba(6, 182, 212, ${(0.50 + loadRatio * 0.45) * n.busyAlpha})`;
                     }
                     ctx.fill();
-                } else {
-                    // Idle / Unallocated nodes render as subtle, dim slate particle outlines
-                    ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
-                    ctx.lineWidth = 0.8;
-                    ctx.stroke();
                 }
                 ctx.restore();
             }
