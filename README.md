@@ -36,29 +36,27 @@
 
 ## 🚀 Quick Start & Installation
 
-### Prerequisites
-- Any modern Web Browser (Google Chrome, Firefox, Edge, Safari) supporting **Web Audio API** and **OffscreenCanvas / Web Worker**.
-- A simple local web server (e.g., Python `http.server`, Node `http-server`, or VS Code Live Server).
+### Option 1: Run via Launcher Script (Recommended)
 
-### Running Locally
+Simply execute `mnusic.sh` from your terminal or double-click it:
 
-1. **Clone or Download the Repository**:
+```bash
+./mnusic.sh
+```
+
+This automatically starts a local web server at `http://127.0.0.1:8080/` and opens the application in your default web browser!
+
+---
+
+### Option 2: Manual Launch
+
+1. **Launch a Local Web Server**:
    ```bash
-   git clone <your-repository-url>
-   cd mnusic
-   ```
-
-2. **Launch a Local Web Server**:
-   ```bash
-   # Using Python 3
    python3 -m http.server 8080
-
-   # OR using Node.js http-server
-   npx http-server -p 8080
    ```
 
-3. **Open in Browser**:
-   Navigate to `http://127.0.0.1:8080/index.html` in your web browser.
+2. **Open in Browser**:
+   Navigate to `http://127.0.0.1:8080/index.html` in Google Chrome, Firefox, or Edge.
 
 4. **Start Audio Generation**:
    Click **`▶ GENERATE SOUNDSCAPE`** in the top right header to activate the audio engine.
