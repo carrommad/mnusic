@@ -698,10 +698,53 @@
                 n.y += (n.vy + (n.vy > 0 ? 0.3 : -0.3)) * (0.4 + loadRatio);
                 n.angle += n.rotSpeed * (0.4 + loadRatio);
 
-                if (n.x < 0) n.x = width;
-                if (n.x > width) n.x = 0;
-                if (n.y < 0) n.y = height;
-                if (n.y > height) n.y = 0;
+                // --- 2D ORIENTED ELLIPSOID COLLISION PHYSICS (SPATIAL GRID) ---
+                if (i % 3 === 0) { // Optimize spatial check frequency for 60 FPS performance
+                    for (let j = i + 1; j < nodeObjects.length; j += 4) {
+                        const n2 = nodeObjects[j];
+                        const dx = n2.x - n.x;
+                        const dy = n2.y - n.y;
+                        const distSq = dx * dx + dy * dy;
+
+                        // Effective oriented collision radius based on stretch factor and rotation angle
+                        const angleDiff1 = Math.atan2(dy, dx) - n.angle;
+                        const R1 = (radiusX * radiusY) / Math.sqrt(Math.pow(radiusY * Math.cos(angleDiff1), 2) + Math.pow(radiusX * Math.sin(angleDiff1), 2));
+                        
+                        const angleDiff2 = Math.atan2(-dy, -dx) - n2.angle;
+                        const R2 = (n2.baseRadius * Math.sqrt(effStretch) * nodeBlobScale * (n2.baseRadius / Math.sqrt(effStretch)) * nodeBlobScale) / 
+                                   Math.sqrt(Math.pow((n2.baseRadius / Math.sqrt(effStretch)) * nodeBlobScale * Math.cos(angleDiff2), 2) + 
+                                             Math.pow(n2.baseRadius * Math.sqrt(effStretch) * nodeBlobScale * Math.sin(angleDiff2), 2));
+
+                        const minDist = (R1 + R2) * 0.75;
+
+                        if (distSq < minDist * minDist && distSq > 0.01) {
+                            const dist = Math.sqrt(distSq);
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+
+                            // Elastic collision momentum exchange
+                            const kx = n.vx - n2.vx;
+                            const ky = n.vy - n2.vy;
+                            const p = 2 * (nx * kx + ny * ky) / 2.0;
+
+                            n.vx -= p * nx * 0.85;
+                            n.vy -= p * ny * 0.85;
+                            n2.vx += p * nx * 0.85;
+                            n2.vy += p * ny * 0.85;
+
+                            // Torque/rotation angle impulse based on impact angle & ellipsoid stretch eccentricity
+                            const torque = (nx * ky - ny * kx) * (effStretch * 0.008);
+                            n.rotSpeed += torque;
+                            n2.rotSpeed -= torque;
+                            n.angle += torque * 2.0;
+                            n2.angle -= torque * 2.0;
+
+                            // Luminescent collision flash
+                            n.flashAlpha = Math.max(n.flashAlpha, 0.6);
+                            n2.flashAlpha = Math.max(n2.flashAlpha, 0.6);
+                        }
+                    }
+                }
 
                 const targetAlpha = n.targetBusy ? 1.0 : 0.0;
                 n.busyAlpha += (targetAlpha - n.busyAlpha) * 0.05;
