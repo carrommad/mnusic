@@ -615,17 +615,18 @@
 
         function initNodeObjects() {
             nodeObjects = [];
-            const allocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+            // Scale render count proportionally so 100% load = 1,200 particles, while 5% load = 60 particles
+            const MAX_VISUAL_PARTICLES = 1200;
+            const targetVisualCount = Math.round((currentLoad / 100) * MAX_VISUAL_PARTICLES);
 
-            // Generate ONLY the allocated node count so unallocated nodes vanish completely
-            for (let i = 0; i < allocCount; i++) {
+            for (let i = 0; i < targetVisualCount; i++) {
                 let type = 'cpu';
                 let baseRadius = Math.random() * 1.5 + 1.2;
 
-                if (i % 35 === 0) {
+                if (i % 25 === 0) {
                     type = 'gpu'; // Interleaved GPU A100 node (vibrant gold)
                     baseRadius = Math.random() * 3 + 4.5;
-                } else if (i % 90 === 0) {
+                } else if (i % 65 === 0) {
                     type = 'inter';
                     baseRadius = Math.random() * 2 + 2.5;
                 }
