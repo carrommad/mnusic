@@ -615,9 +615,11 @@
 
         function initNodeObjects() {
             nodeObjects = [];
-            const allocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+            // Cap total rendered visual particles at 1000 so 100% load = 1000 particles and 5% load = 50 particles
+            const MAX_PARTICLES = 1000;
+            const activeParticleCount = Math.round((currentLoad / 100) * MAX_PARTICLES);
 
-            for (let i = 0; i < allocCount; i++) {
+            for (let i = 0; i < activeParticleCount; i++) {
                 let type = 'cpu';
                 let baseRadius = Math.random() * 1.5 + 1.2;
 
