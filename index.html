@@ -603,6 +603,7 @@
                     targetNode.flashAlpha = 1.0; // Instantly light up node center
                     
                     soundRipples.push({
+                        parentNode: targetNode,
                         x: targetNode.x,
                         y: targetNode.y,
                         maxR: data.maxR,
@@ -848,13 +849,20 @@
                 r.frame++;
                 const progress = r.frame / r.duration;
                 const currR = r.maxR * Math.sin(progress * Math.PI);
-                const alpha = Math.sin(progress * Math.PI) * 0.7;
+                const alpha = Math.sin(progress * Math.PI) * 0.75;
+
+                // Dynamically anchor growing circumference to moving origin node and sustain node luminescence
+                if (r.parentNode) {
+                    r.x = r.parentNode.x;
+                    r.y = r.parentNode.y;
+                    r.parentNode.flashAlpha = Math.max(r.parentNode.flashAlpha, alpha * 1.2); // Keep center node glowing white-gold!
+                }
 
                 ctx.save();
                 ctx.beginPath();
                 ctx.arc(r.x, r.y, Math.max(0.1, currR), 0, Math.PI * 2);
                 ctx.strokeStyle = `rgba(${r.color}, ${alpha})`;
-                ctx.lineWidth = Math.max(1.0, 2.0 * (1.0 - progress));
+                ctx.lineWidth = Math.max(1.0, 2.5 * (1.0 - progress));
                 ctx.stroke();
                 ctx.restore();
 
