@@ -769,10 +769,12 @@
                 n.y += (n.vy + (n.vy > 0 ? 0.3 : -0.3)) * (0.4 + loadRatio);
                 n.angle += n.rotSpeed * (0.4 + loadRatio);
 
-                if (n.x < 0) n.x = width;
-                if (n.x > width) n.x = 0;
-                if (n.y < 0) n.y = height;
-                if (n.y > height) n.y = 0;
+                // Smooth off-screen boundary wrapping with 40px margin buffer (prevents pop-in)
+                const margin = 40;
+                if (n.x < -margin) n.x = width + margin;
+                if (n.x > width + margin) n.x = -margin;
+                if (n.y < -margin) n.y = height + margin;
+                if (n.y > height + margin) n.y = -margin;
 
                 const targetAlpha = n.targetBusy ? 1.0 : 0.0;
                 n.busyAlpha += (targetAlpha - n.busyAlpha) * 0.05;
