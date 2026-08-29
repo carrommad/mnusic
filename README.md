@@ -68,7 +68,7 @@
 ## 🛰️ Real Telemetry Setup (LUMI Cluster)
 
 To feed live Slurm cluster status into the synthesizer:
-1. Run your background telemetry fetch script (`check_nodes.sh` or equivalent SSH loop) that periodically updates `cluster_node_status.txt` in the root directory.
+1. Run your background telemetry fetch script (`scripts/check_nodes.sh` or equivalent SSH loop) that periodically updates `cluster_node_status.txt` in the root directory.
 2. In the application UI, click the **`REAL LUMI CLUSTER`** button in the header. The application will auto-poll `cluster_node_status.txt` every 5 seconds.
 
 ---
