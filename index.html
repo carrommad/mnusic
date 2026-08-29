@@ -459,14 +459,6 @@
 
                 <div class="control-group">
                     <div class="control-row">
-                        <label>Particle Collision Density</label>
-                        <span id="collisionDensityVal">0% (Disabled)</span>
-                    </div>
-                    <input type="range" id="collisionDensitySlider" class="slider-input" min="0" max="5" value="0" step="1">
-                </div>
-
-                <div class="control-group">
-                    <div class="control-row">
                         <label>Ellipsoid Volumetric Stretch</label>
                         <span id="stretchVal">Classified</span>
                     </div>
@@ -523,7 +515,6 @@
         let TOTAL_NODES = 1944;
         let stretchFactor = 1.8;
         let nodeBlobScale = 1.0;
-        let collisionPercent = 0;
 
         let mouseX = -1000;
         let mouseY = -1000;
@@ -565,7 +556,6 @@
                 TOTAL_NODES = data.totalNodes;
                 currentLoad = data.currentLoad;
                 nodeBlobScale = data.nodeBlobScale || 1.0;
-                collisionPercent = data.collisionPercent || 0;
                 initNodeObjects();
                 renderLoop();
             }
@@ -584,7 +574,6 @@
                 TOTAL_NODES = data.totalNodes;
                 stretchFactor = data.stretchFactor;
                 nodeBlobScale = data.nodeBlobScale || 1.0;
-                collisionPercent = data.collisionPercent !== undefined ? data.collisionPercent : 0;
                 breathingCycleSeconds = data.breathingCycleSeconds;
                 breathingPhaseDriftMult = data.breathingPhaseDriftMult;
 
@@ -709,41 +698,12 @@
                 n.y += (n.vy + (n.vy > 0 ? 0.3 : -0.3)) * (0.4 + loadRatio);
                 n.angle += n.rotSpeed * (0.4 + loadRatio);
 
-                // --- SAFE OPTIMIZED PARTICLE COLLISION PHYSICS (Max 5% Cap) ---
-                if (collisionPercent > 0 && (n.id % 100) < collisionPercent) {
-                    const checkLimit = Math.min(i + 8, nodeObjects.length);
-                    for (let j = i + 1; j < checkLimit; j++) {
-                        const n2 = nodeObjects[j];
-                        if ((n2.id % 100) < collisionPercent) {
-                            const dx = n2.x - n.x;
-                            const dy = n2.y - n.y;
-                            const distSq = dx * dx + dy * dy;
-                            const minDist = (n.baseRadius + n2.baseRadius) * 2.0 * nodeBlobScale;
-
-                            if (distSq < minDist * minDist && distSq > 4.0) {
-                                const dist = Math.sqrt(distSq);
-                                const nx = dx / dist;
-                                const ny = dy / dist;
-
-                                n.vx -= nx * 0.12;
-                                n.vy -= ny * 0.12;
-                                n2.vx += nx * 0.12;
-                                n2.vy += ny * 0.12;
-
-                                n.rotSpeed += (Math.random() - 0.5) * 0.008;
-                                n2.rotSpeed += (Math.random() - 0.5) * 0.008;
-
-                                n.flashAlpha = Math.max(n.flashAlpha, 0.4);
-                                n2.flashAlpha = Math.max(n2.flashAlpha, 0.4);
-                            }
-                        }
-                    }
-                }
-
                 if (n.x < 0) n.x = width;
                 if (n.x > width) n.x = 0;
                 if (n.y < 0) n.y = height;
                 if (n.y > height) n.y = 0;
+
+                const targetAlpha = n.targetBusy ? 1.0 : 0.0;
                 n.busyAlpha += (targetAlpha - n.busyAlpha) * 0.05;
 
                 // Decay flash lightness highlight
