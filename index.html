@@ -671,27 +671,28 @@
             for (let i = 0; i < nodeObjects.length; i++) {
                 const n = nodeObjects[i];
 
-                // --- INTERACTIVE FLUID MOUSE FORCE FIELD ---
+                // --- TIGHTENED FLUID MOUSE FORCE FIELD ---
                 if (mouseX >= 0 && mouseY >= 0) {
                     const dx = n.x - mouseX;
                     const dy = n.y - mouseY;
                     const distSq = dx * dx + dy * dy;
-                    const forceRadius = 140; // 140px fluid influence radius
+                    const forceRadius = 60; // Reduced from 140px to 60px (very localized displacement)
                     
                     if (distSq < forceRadius * forceRadius && distSq > 1) {
                         const dist = Math.sqrt(distSq);
-                        const force = (1.0 - dist / forceRadius) * 2.2; // Repelling force strength
+                        const force = (1.0 - dist / forceRadius) * 0.8; // Gentle repelling nudge
                         n.vx += (dx / dist) * force;
                         n.vy += (dy / dist) * force;
                     }
                 }
 
-                // Apply velocity damping to return smoothly to natural cluster drift
-                n.vx *= 0.96;
-                n.vy *= 0.96;
+                // Damping applies ONLY to mouse impulse (capped at 0.98), preserving base drift
+                n.vx *= 0.98;
+                n.vy *= 0.98;
 
-                n.x += n.vx * (0.4 + loadRatio);
-                n.y += n.vy * (0.4 + loadRatio);
+                // Move particle with guaranteed continuous base velocity
+                n.x += (n.vx + (n.vx > 0 ? 0.3 : -0.3)) * (0.4 + loadRatio);
+                n.y += (n.vy + (n.vy > 0 ? 0.3 : -0.3)) * (0.4 + loadRatio);
                 n.angle += n.rotSpeed * (0.4 + loadRatio);
 
                 if (n.x < 0) n.x = width;
