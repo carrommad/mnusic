@@ -1479,7 +1479,7 @@
             simulatedControlGroup.style.pointerEvents = 'auto';
 
             if (lumiPollInterval) clearInterval(lumiPollInterval);
-            TOTAL_NODES = 1944;
+            TOTAL_NODES = 1944; // MN5 Cluster Node Count
             currentLoad = parseFloat(document.getElementById('loadSlider').value);
             updateNodeCount();
             updateMusicEngine();
@@ -1494,7 +1494,10 @@
             simulatedControlGroup.style.opacity = '0.4';
             simulatedControlGroup.style.pointerEvents = 'none';
 
+            // Instantly transition particle density to LUMI supercomputer scale (4,360 nodes)
+            TOTAL_NODES = 4360;
             fetchLumiClusterStatus();
+            if (lumiPollInterval) clearInterval(lumiPollInterval);
             lumiPollInterval = setInterval(fetchLumiClusterStatus, 5000);
         });
 
