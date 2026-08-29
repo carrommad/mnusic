@@ -722,10 +722,7 @@
                             n1.rotSpeed += (Math.random() - 0.5) * 0.015;
                             n2.rotSpeed += (Math.random() - 0.5) * 0.015;
 
-                            // 3. Visual Collision Spark / Flash Sensation
-                            n1.flashAlpha = Math.max(n1.flashAlpha, 0.85);
-                            n2.flashAlpha = Math.max(n2.flashAlpha, 0.85);
-
+                            // 3. Physical trajectory & torque deflection (without random particle flashes)
                             sparkCount++;
                         }
                     }
