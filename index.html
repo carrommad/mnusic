@@ -372,7 +372,7 @@
     <main id="mainLayout">
         <div class="canvas-container" id="canvasContainer">
             <div class="hud-overlay">
-                <div>CLUSTER SOURCE: <span id="hudSource" style="color:var(--accent-gold);">SIMULATED (MareNostrum 5)</span></div>
+                <div>CLUSTER SOURCE: <span id="hudSource" style="color:var(--accent-gold);">MARENOSTRUM5 (Simulated)</span></div>
                 <div>ACTIVE COMPUTE NODES: <span id="hudNodes">1,895 / 1,944 Nodes</span></div>
                 
                 <div class="legend-row">
@@ -1473,7 +1473,7 @@
             isLumiMode = false;
             btnSimulated.className = 'toggle-btn active';
             btnLumi.className = 'toggle-btn';
-            hudSource.innerText = 'SIMULATED (MareNostrum 5)';
+            hudSource.innerText = 'MARENOSTRUM5 (Simulated)';
             hudSource.style.color = 'var(--accent-gold)';
             simulatedControlGroup.style.opacity = '1.0';
             simulatedControlGroup.style.pointerEvents = 'auto';
@@ -1489,7 +1489,7 @@
             isLumiMode = true;
             btnLumi.className = 'toggle-btn active-lumi';
             btnSimulated.className = 'toggle-btn';
-            hudSource.innerText = 'REAL LUMI CLUSTER (Slurm Telemetry)';
+            hudSource.innerText = 'LUMI (Slurm Telemetry)';
             hudSource.style.color = 'var(--accent-cyan)';
             simulatedControlGroup.style.opacity = '0.4';
             simulatedControlGroup.style.pointerEvents = 'none';
