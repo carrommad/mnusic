@@ -591,21 +591,8 @@
                 breathingCycleSeconds = data.breathingCycleSeconds;
                 breathingPhaseDriftMult = data.breathingPhaseDriftMult;
 
-                if (nodeObjects.length !== TOTAL_NODES) {
-                    initNodeObjects();
-                } else {
-                    const newAllocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
-                    nodeObjects.forEach((node, idx) => {
-                        const isAlloc = idx < newAllocCount;
-                        node.targetBusy = isAlloc;
-                        // Instantly adjust busyAlpha when load is modified so visual response is immediate
-                        if (!isAlloc) {
-                            node.busyAlpha = 0.0;
-                        } else if (node.busyAlpha < 0.2) {
-                            node.busyAlpha = 1.0;
-                        }
-                    });
-                }
+                // Re-initialize node pool whenever load or cluster node count changes
+                initNodeObjects();
             }
             else if (data.type === 'spawnRippleFromRandomNode') {
                 const targetNode = nodeObjects[data.nodeIndex] || nodeObjects[Math.floor(Math.random() * nodeObjects.length)];
@@ -630,19 +617,19 @@
             nodeObjects = [];
             const allocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
 
-            for (let i = 0; i < TOTAL_NODES; i++) {
+            // Generate ONLY the allocated node count so unallocated nodes vanish completely
+            for (let i = 0; i < allocCount; i++) {
                 let type = 'cpu';
                 let baseRadius = Math.random() * 1.5 + 1.2;
 
-                if (i % 50 === 0) {
+                if (i % 35 === 0) {
                     type = 'gpu'; // Interleaved GPU A100 node (vibrant gold)
                     baseRadius = Math.random() * 3 + 4.5;
-                } else if (i % 120 === 0) {
+                } else if (i % 90 === 0) {
                     type = 'inter';
                     baseRadius = Math.random() * 2 + 2.5;
                 }
 
-                const isBusyInitial = i < allocCount;
                 nodeObjects.push({
                     id: i,
                     type: type,
@@ -651,9 +638,9 @@
                     vx: (Math.random() - 0.5) * 0.8,
                     vy: (Math.random() - 0.5) * 0.8,
                     baseRadius: baseRadius,
-                    isBusy: isBusyInitial,
-                    targetBusy: isBusyInitial,
-                    busyAlpha: isBusyInitial ? 1.0 : 0.0,
+                    isBusy: true,
+                    targetBusy: true,
+                    busyAlpha: 1.0,
                     flashAlpha: 0.0,
                     angle: Math.random() * Math.PI * 2,
                     rotSpeed: (Math.random() - 0.5) * 0.018
