@@ -160,12 +160,12 @@ function renderLoop() {
     const phaseStep = (Math.PI * 2) / (breathingCycleSeconds * 60);
     globalBreathingPhase += phaseStep;
 
-    const harmonicDepth = breathingPhaseDriftMult;
+    const harmonicDepth = breathingPhaseDriftMult * 2.5; // Amplified depth for strong visual contrast
     const maxAmplitude = (stretchFactor - 1.0) * harmonicDepth;
-    const wave = (Math.sin(globalBreathingPhase) * 0.65 + Math.sin(globalBreathingPhase * breathingPhaseDriftMult) * 0.35);
+    const wave = (Math.sin(globalBreathingPhase) * 0.70 + Math.sin(globalBreathingPhase * breathingPhaseDriftMult) * 0.30);
     const slowOrganicDrift = wave * maxAmplitude;
     const normalizedBreathing = Math.max(-1.0, Math.min(1.0, wave));
-    const currentDynamicStretch = Math.max(1.0, stretchFactor + slowOrganicDrift);
+    const currentDynamicStretch = Math.max(1.0, stretchFactor + slowOrganicDrift * 1.8);
 
     self.postMessage({
         type: 'breathingUpdate',

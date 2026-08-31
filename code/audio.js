@@ -70,29 +70,30 @@ function triggerXylophoneNote(freq, pan = 0, volumeMult = 1.0, isGpu = false) {
     const modulatorGain = audioCtx.createGain();
     const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
 
-    const breathingPitchDetune = currentBreathingModulation * 12;
+    // Amplified pitch detune (+/- 120 cents / full semitone drift) & decay modulation for strong breathing contrast
+    const breathingPitchDetune = currentBreathingModulation * 120;
     const tunedFreq = freq * Math.pow(2, breathingPitchDetune / 1200);
 
     let modRatio = 2.0;
-    let modIndex = 350;
-    let decayTime = 1.6 + (currentBreathingModulation * 0.4);
+    let modIndex = 350 + (currentBreathingModulation * 180);
+    let decayTime = 1.6 + (currentBreathingModulation * 1.2);
 
     if (isGpu) {
         modRatio = 4.0;
-        modIndex = 500;
-        decayTime = 2.4 + (currentBreathingModulation * 0.6);
+        modIndex = 500 + (currentBreathingModulation * 250);
+        decayTime = 2.4 + (currentBreathingModulation * 1.6);
     } else if (selectedTimbre === 'marimba') {
         modRatio = 3.5;
-        modIndex = 150;
-        decayTime = 2.0 + (currentBreathingModulation * 0.5);
+        modIndex = 150 + (currentBreathingModulation * 100);
+        decayTime = 2.0 + (currentBreathingModulation * 1.4);
     } else if (selectedTimbre === 'celesta') {
         modRatio = 1.0;
-        modIndex = 450;
-        decayTime = 2.8 + (currentBreathingModulation * 0.7);
+        modIndex = 450 + (currentBreathingModulation * 200);
+        decayTime = 2.8 + (currentBreathingModulation * 1.8);
     } else if (selectedTimbre === 'vibraphone') {
         modRatio = 2.0;
-        modIndex = 250;
-        decayTime = 3.5 + (currentBreathingModulation * 0.8);
+        modIndex = 250 + (currentBreathingModulation * 150);
+        decayTime = 3.5 + (currentBreathingModulation * 2.2);
     }
 
     carrier.frequency.setValueAtTime(tunedFreq, now);
