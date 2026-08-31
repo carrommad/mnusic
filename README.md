@@ -17,6 +17,8 @@
 - ** Dual-Mode Telemetry Ingestion**:
   - **Simulated MN5 Cluster Mode**: Interactive simulation model representing MareNostrum 5 (1,944 nodes).
   - **Real LUMI Cluster Mode**: Live Slurm telemetry parser fetching active vs. idle nodes directly from `scratch/cluster_node_status.txt` (4,315+ nodes).
+- ** 2-Column Tabular Node Classification Breakdown**:
+  - Live active vs. total count tracking per compute partition (CPU PAR, GPU A100, Interactive, Idle) formatted in dedicated colored columns matching particle colors.
 - ** Crash-Proof OffscreenCanvas Web Worker**:
   - Offloads 60 FPS particle trajectory calculations, volume-conserving ellipsoid stretch transformations, and canvas rendering to an isolated Web Worker thread with persistent node pool allocation and instant real-time density filtering (`busyAlpha`).
 - ** Proportional Virtual Xylophone Waterfall**:
@@ -68,6 +70,13 @@ This automatically starts a local web server at `http://127.0.0.1:8080/` and ope
 To feed live Slurm cluster status into the synthesizer:
 1. Run your background telemetry fetch script (`scratch/check_nodes.sh` or equivalent SSH loop) that periodically updates `scratch/cluster_node_status.txt`.
 2. In the application UI, click the **`REAL LUMI CLUSTER`** button in the header. The application will auto-poll `scratch/cluster_node_status.txt` every 5 seconds.
+
+---
+
+## 🌿 Branches
+
+- **`modular`** (default): Structured modular architecture separated into `code/audio.js`, `code/music.js`, `code/telemetry.js`, `code/ui.js`, `code/worker.js`, and `code/style.css`.
+- **`monolithic`**: Single-file version with all CSS and JavaScript contained within `index.html`.
 
 ---
 
