@@ -5,16 +5,25 @@
 
 function updateNodeCount() {
     const newAllocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+    const idleCount = TOTAL_NODES - newAllocCount;
     const delta = newAllocCount - previousAllocCount;
 
-    const busyGpu = Math.round(newAllocCount * 0.01);
-    const busyCpu = newAllocCount - busyGpu;
+    // Ratios based on node allocation probability: GPU (~3%), INTERACTIVE (~5%), CPU (~92%)
+    const totalGpu = Math.round(TOTAL_NODES * 0.03);
+    const totalInter = Math.round(TOTAL_NODES * 0.05);
+    const totalCpu = TOTAL_NODES - totalGpu - totalInter;
 
-    document.getElementById('statAlloc').innerText = newAllocCount.toLocaleString();
-    document.getElementById('statIdle').innerText = (TOTAL_NODES - newAllocCount).toLocaleString();
+    const activeGpu = Math.min(totalGpu, Math.round(newAllocCount * 0.03));
+    const activeInter = Math.min(totalInter, Math.round(newAllocCount * 0.05));
+    const activeCpu = Math.max(0, newAllocCount - activeGpu - activeInter);
+
+    document.getElementById('statCpu').innerText = `${activeCpu.toLocaleString()} / ${totalCpu.toLocaleString()}`;
+    document.getElementById('statGpu').innerText = `${activeGpu.toLocaleString()} / ${totalGpu.toLocaleString()}`;
+    document.getElementById('statInter').innerText = `${activeInter.toLocaleString()} / ${totalInter.toLocaleString()}`;
+    document.getElementById('statIdle').innerText = `${idleCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()}`;
+    document.getElementById('statAlloc').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()}`;
+
     document.getElementById('hudNodes').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()} Nodes`;
-    document.getElementById('statCpu').innerText = busyCpu.toLocaleString();
-    document.getElementById('statGpu').innerText = busyGpu.toLocaleString();
 
     syncWorkerState();
 

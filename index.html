@@ -151,19 +151,23 @@
                 <div class="stat-grid">
                     <div class="stat-box">
                         <div class="stat-label">CPU PAR</div>
-                        <div class="stat-val val-cyan" id="statCpu">1,875</div>
+                        <div class="stat-val val-cyan" id="statCpu">0 / 0</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">GPU A100</div>
-                        <div class="stat-val val-gold" id="statGpu">18</div>
+                        <div class="stat-val val-gold" id="statGpu">0 / 0</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">BUSY NODES</div>
-                        <div class="stat-val val-gold" id="statAlloc">1,895</div>
+                        <div class="stat-label">INTERACTIVE</div>
+                        <div class="stat-val val-rose" id="statInter">0 / 0</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">IDLE NODES</div>
-                        <div class="stat-val" style="color:#64748b;" id="statIdle">49</div>
+                        <div class="stat-val val-slate" id="statIdle">0 / 0</div>
+                    </div>
+                    <div class="stat-box" style="grid-column: span 2;">
+                        <div class="stat-label">BUSY / TOTAL CLUSTER NODES</div>
+                        <div class="stat-val val-gold" id="statAlloc">0 / 0</div>
                     </div>
                 </div>
             </div>
