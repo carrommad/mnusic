@@ -259,8 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateNodeCount();
                     updateMusicEngine();
 
-                    // Randomized next change interval between 5 seconds (5000ms) and 3 minutes (180000ms)
-                    const nextIntervalMs = Math.floor(5000 + Math.random() * (180000 - 5000));
+                    // Randomized next change interval between 5 seconds (5000ms) and 30 seconds (30000ms)
+                    const nextIntervalMs = Math.floor(5000 + Math.random() * (30000 - 5000));
                     
                     const log = document.getElementById('noteLog');
                     if (log) {
