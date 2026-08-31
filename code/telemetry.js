@@ -84,19 +84,23 @@ function drawTelemetryGraph() {
     if (telemetryHistory.length < 2) return;
 
     const step = w / (MAX_GRAPH_HISTORY - 1);
-    const maxVal = TOTAL_NODES || 1;
+
+    // Compute total partition capacities for 0.0 to 1.0 (0% - 100%) normalized scaling
+    const totalGpu = Math.round((TOTAL_NODES || 1944) * 0.03) || 1;
+    const totalInter = Math.round((TOTAL_NODES || 1944) * 0.05) || 1;
+    const totalCpu = ((TOTAL_NODES || 1944) - totalGpu - totalInter) || 1;
 
     // Draw subtle grid lines
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, h * 0.5); ctx.lineTo(w, h * 0.5);
     ctx.stroke();
 
     const series = [
-        { key: 'cpu', color: '#06b6d4' },
-        { key: 'gpu', color: '#f59e0b' },
-        { key: 'inter', color: '#f43f5e' }
+        { key: 'cpu', total: totalCpu, color: '#06b6d4' },
+        { key: 'gpu', total: totalGpu, color: '#f59e0b' },
+        { key: 'inter', total: totalInter, color: '#f43f5e' }
     ];
 
     series.forEach(s => {
@@ -107,7 +111,9 @@ function drawTelemetryGraph() {
 
         telemetryHistory.forEach((pt, idx) => {
             const x = idx * step;
-            const y = h - (pt[s.key] / maxVal) * (h - 8) - 4;
+            // Normalized ratio (0.0 = 0%, 1.0 = 100% of partition capacity)
+            const ratio = Math.max(0, Math.min(1.0, pt[s.key] / s.total));
+            const y = h - ratio * (h - 10) - 5;
             if (idx === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         });
