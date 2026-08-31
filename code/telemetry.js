@@ -71,7 +71,7 @@ function updateNodeCount() {
 
     syncWorkerState();
 
-    if (delta !== 0 && isPlaying && !window.customRandomCounts) {
+    if (delta !== 0 && isPlaying) {
         triggerVirtualXylophoneWaterfall(previousAllocCount, newAllocCount);
     }
 
