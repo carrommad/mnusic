@@ -31,9 +31,15 @@ function initOffscreenWorker() {
 
     renderWorker.onmessage = function(e) {
         if (e.data.type === 'breathingUpdate') {
+            const oldMod = currentBreathingModulation;
             currentBreathingModulation = e.data.normalizedBreathing;
             const stretchVal = document.getElementById('stretchVal');
             if (stretchVal) stretchVal.innerText = `${e.data.currentDynamicStretch.toFixed(2)}x (Breathing)`;
+
+            // Smoothly recalculate synth voice tempos on significant breathing phase shifts
+            if (Math.abs(currentBreathingModulation - oldMod) > 0.15 && isPlaying) {
+                updateMusicEngine();
+            }
         } else if (e.data.type === 'nodeDisplaced') {
             playFluidDisplacementChime(e.data.mouseX, e.data.count);
         } else if (e.data.type === 'collisionSparks') {

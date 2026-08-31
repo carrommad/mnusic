@@ -87,9 +87,12 @@ function updateMusicEngine() {
             const pan = getVirtualBarPan(barIdx);
             const isGpu = barIdx >= Math.floor(TOTAL_NODES * 0.95);
 
-            triggerXylophoneNote(freq, pan, 0.75, isGpu);
+            // Breathing speed modulation: accelerate tempo during Inhale (+ modulation), relax during Exhale (- modulation)
+            const breathingSpeedFactor = 1.0 + (currentBreathingModulation * 0.40); // 1.4x faster on full Inhale, 0.6x on Exhale
+            const baseInterval = loopLength / (Math.max(15, currentLoad || 50) / 50);
+            const dynamicInterval = Math.max(120, baseInterval / breathingSpeedFactor);
 
-        }, loopLength / (Math.max(15, currentLoad || 50) / 50));
+        }, dynamicInterval);
 
         activeTimers.push(voiceTimer);
     });
