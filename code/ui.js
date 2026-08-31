@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let zeroLoadRandomInterval = null;
     let isRandomMode = false;
 
-    loadSlider.addEventListener('input', (e) => {
+    const handleLoadSliderChange = (e) => {
         if (isLumiMode) return;
         const sliderVal = parseFloat(e.target.value);
         
@@ -296,7 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateNodeCount();
             updateMusicEngine();
         }
-    });
+    };
+
+    loadSlider.addEventListener('input', handleLoadSliderChange);
+    loadSlider.addEventListener('change', handleLoadSliderChange);
 
     const timbreSelect = document.getElementById('timbreSelect');
     timbreSelect.addEventListener('change', (e) => {

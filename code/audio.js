@@ -149,70 +149,77 @@ function playPartitionNodeChime(partitionType, isEntering = true) {
     const scaleNotes = SCALES[currentScaleKey] || SCALES['pentatonic'];
 
     if (partitionType === 'cpu') {
-        // CPU PAR (Cyan): Warm Resonant Marimba Mallet (Mid Register, 300-600Hz)
+        // CPU PAR (Cyan): Dual-Harmonic Resonant Wooden Mallet Sweep
         const baseNote = scaleNotes[Math.floor(Math.random() * scaleNotes.length)];
-        const startFreq = isEntering ? baseNote : baseNote * 1.5;
-        const endFreq = isEntering ? baseNote * 1.5 : baseNote * 0.75;
+        const startFreq = isEntering ? baseNote * 0.8 : baseNote * 1.6;
+        const endFreq = isEntering ? baseNote * 1.6 : baseNote * 0.7;
         
-        osc.type = 'square'; // Warm wooden timbre
+        osc.type = 'triangle';
         osc.frequency.setValueAtTime(startFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.25);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.35);
 
-        // Lowpass filter for warm wooden mallet sound
+        const subOsc = audioCtx.createOscillator();
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(startFreq * 0.5, now);
+        subOsc.frequency.exponentialRampToValueAtTime(endFreq * 0.5, now + 0.35);
+        subOsc.connect(gain);
+        subOsc.start(now);
+        subOsc.stop(now + 0.5);
+
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(1200, now);
+        filter.frequency.setValueAtTime(1600, now);
 
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(0.18, now + 0.015);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+        gain.gain.exponentialRampToValueAtTime(0.32, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
 
         osc.connect(filter);
         filter.connect(gain);
 
     } else if (partitionType === 'gpu') {
-        // GPU A100 (Gold): Heavy Heavy Metallic FM Sub-Bass Growl (Low Octave, 65-130Hz)
+        // GPU A100 (Gold): Massive Sub-Bass FM Thunder Drop (Low Octave)
         const baseNote = scaleNotes[0] * 0.5; // Deep sub bass
         const modOsc = audioCtx.createOscillator();
         const modGain = audioCtx.createGain();
 
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(baseNote, now);
-        osc.frequency.exponentialRampToValueAtTime(isEntering ? baseNote * 1.6 : baseNote * 0.6, now + 0.5);
+        osc.frequency.setValueAtTime(isEntering ? baseNote * 0.7 : baseNote * 2.2, now);
+        osc.frequency.exponentialRampToValueAtTime(isEntering ? baseNote * 2.2 : baseNote * 0.5, now + 0.65);
 
         modOsc.type = 'square';
-        modOsc.frequency.setValueAtTime(isEntering ? baseNote * 3.5 : baseNote * 1.2, now);
-        modGain.gain.setValueAtTime(450, now);
-        modGain.gain.exponentialRampToValueAtTime(0.1, now + 0.5);
+        modOsc.frequency.setValueAtTime(isEntering ? baseNote * 4.0 : baseNote * 1.0, now);
+        modGain.gain.setValueAtTime(650, now);
+        modGain.gain.exponentialRampToValueAtTime(0.1, now + 0.6);
 
         modOsc.connect(osc.frequency);
         modOsc.start(now);
-        modOsc.stop(now + 0.6);
+        modOsc.stop(now + 0.7);
 
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(0.28, now + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.58);
+        gain.gain.exponentialRampToValueAtTime(0.45, now + 0.035);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.75);
 
         osc.connect(gain);
 
     } else if (partitionType === 'inter') {
-        // INTERACTIVE (Rose): Sparkling Piercing High Glass Staccato (High Octave 1200-2400Hz)
+        // INTERACTIVE (Rose): Sparkling Piercing Dual-Crystal Bell Cascade
         const baseNote = scaleNotes[scaleNotes.length - 1] * 2.2;
-        const startFreq = isEntering ? baseNote : baseNote * 1.75;
-        const endFreq = isEntering ? baseNote * 1.75 : baseNote * 0.7;
+        const startFreq = isEntering ? baseNote * 0.75 : baseNote * 1.9;
+        const endFreq = isEntering ? baseNote * 1.9 : baseNote * 0.6;
 
         osc.type = 'sine';
         osc.frequency.setValueAtTime(startFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.2);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.32);
 
         // Highpass sparkle filter
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.setValueAtTime(1800, now);
+        filter.frequency.setValueAtTime(1500, now);
 
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.exponentialRampToValueAtTime(0.22, now + 0.005);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        gain.gain.exponentialRampToValueAtTime(0.38, now + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
 
         osc.connect(filter);
         filter.connect(gain);
@@ -227,7 +234,7 @@ function playPartitionNodeChime(partitionType, isEntering = true) {
     }
 
     osc.start(now);
-    osc.stop(now + 0.6);
+    osc.stop(now + 0.75);
 }
 
 function playFluidDisplacementChime(x, count) {
