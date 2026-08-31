@@ -148,26 +148,36 @@
 
             <div class="panel">
                 <h2>Node Classification Breakdown</h2>
-                <div class="stat-grid">
-                    <div class="stat-box">
-                        <div class="stat-label">CPU PAR</div>
-                        <div class="stat-val val-cyan" id="statCpu">0 / 0</div>
+                <div class="breakdown-table">
+                    <div class="table-header">
+                        <span>PARTITION</span>
+                        <span>ACTIVE</span>
+                        <span>TOTAL</span>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-label">GPU A100</div>
-                        <div class="stat-val val-gold" id="statGpu">0 / 0</div>
+                    <div class="table-row">
+                        <span class="row-label"><span class="legend-dot dot-cpu"></span> CPU PAR</span>
+                        <span class="val-cyan" id="statCpuActive">0</span>
+                        <span class="val-slate" id="statCpuTotal">0</span>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-label">INTERACTIVE</div>
-                        <div class="stat-val val-rose" id="statInter">0 / 0</div>
+                    <div class="table-row">
+                        <span class="row-label"><span class="legend-dot dot-gpu"></span> GPU A100</span>
+                        <span class="val-gold" id="statGpuActive">0</span>
+                        <span class="val-slate" id="statGpuTotal">0</span>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-label">IDLE NODES</div>
-                        <div class="stat-val val-slate" id="statIdle">0 / 0</div>
+                    <div class="table-row">
+                        <span class="row-label"><span class="legend-dot dot-inter"></span> INTERACTIVE</span>
+                        <span class="val-rose" id="statInterActive">0</span>
+                        <span class="val-slate" id="statInterTotal">0</span>
                     </div>
-                    <div class="stat-box" style="grid-column: span 2;">
-                        <div class="stat-label">BUSY / TOTAL CLUSTER NODES</div>
-                        <div class="stat-val val-gold" id="statAlloc">0 / 0</div>
+                    <div class="table-row divider-row">
+                        <span class="row-label">IDLE NODES</span>
+                        <span class="val-slate" id="statIdleActive">0</span>
+                        <span class="val-slate" id="statIdleTotal">0</span>
+                    </div>
+                    <div class="table-row total-summary-row">
+                        <span class="row-label">TOTAL BUSY</span>
+                        <span class="val-gold" id="statAllocActive">0</span>
+                        <span class="val-gold" id="statAllocTotal">0</span>
                     </div>
                 </div>
             </div>

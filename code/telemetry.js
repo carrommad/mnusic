@@ -17,11 +17,20 @@ function updateNodeCount() {
     const activeInter = Math.min(totalInter, Math.round(newAllocCount * 0.05));
     const activeCpu = Math.max(0, newAllocCount - activeGpu - activeInter);
 
-    document.getElementById('statCpu').innerText = `${activeCpu.toLocaleString()} / ${totalCpu.toLocaleString()}`;
-    document.getElementById('statGpu').innerText = `${activeGpu.toLocaleString()} / ${totalGpu.toLocaleString()}`;
-    document.getElementById('statInter').innerText = `${activeInter.toLocaleString()} / ${totalInter.toLocaleString()}`;
-    document.getElementById('statIdle').innerText = `${idleCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()}`;
-    document.getElementById('statAlloc').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()}`;
+    document.getElementById('statCpuActive').innerText = activeCpu.toLocaleString();
+    document.getElementById('statCpuTotal').innerText = totalCpu.toLocaleString();
+
+    document.getElementById('statGpuActive').innerText = activeGpu.toLocaleString();
+    document.getElementById('statGpuTotal').innerText = totalGpu.toLocaleString();
+
+    document.getElementById('statInterActive').innerText = activeInter.toLocaleString();
+    document.getElementById('statInterTotal').innerText = totalInter.toLocaleString();
+
+    document.getElementById('statIdleActive').innerText = idleCount.toLocaleString();
+    document.getElementById('statIdleTotal').innerText = TOTAL_NODES.toLocaleString();
+
+    document.getElementById('statAllocActive').innerText = newAllocCount.toLocaleString();
+    document.getElementById('statAllocTotal').innerText = TOTAL_NODES.toLocaleString();
 
     document.getElementById('hudNodes').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()} Nodes`;
 
