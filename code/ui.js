@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentLoad = parseFloat(e.target.value);
         
         if (currentLoad === 0) {
-            loadVal.innerText = `0.0% (Dynamic Random Mode)`;
+            loadVal.innerText = `Random`;
             loadVal.style.color = 'var(--accent-rose)';
 
             if (!zeroLoadRandomInterval) {
