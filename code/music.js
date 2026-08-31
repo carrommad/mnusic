@@ -32,7 +32,7 @@ function triggerVirtualXylophoneWaterfall(startNodeIndex, targetNodeIndex) {
             const pan = getVirtualBarPan(currentBar);
             const isGpuBar = currentBar >= Math.floor(TOTAL_NODES * 0.95);
 
-            triggerXylophoneNote(freq, pan, 1.1, isGpuBar);
+            triggerXylophoneNote(freq, pan, 2.2, isGpuBar);
         }, stepCount * stepInterval);
 
         stepCount++;
