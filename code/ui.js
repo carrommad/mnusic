@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     initOffscreenWorker();
+    updateNodeCount();
 
     const mainLayout = document.getElementById('mainLayout');
     const btnToggleSidebar = document.getElementById('btnToggleSidebar');

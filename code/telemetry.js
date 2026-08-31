@@ -49,6 +49,20 @@ function updateNodeCount() {
 const telemetryHistory = [];
 const MAX_GRAPH_HISTORY = 40;
 
+// Seed initial points so graph renders immediately upon initialization
+(function seedTelemetryHistory() {
+    const initAlloc = 1895;
+    const totalN = 1944;
+    for (let i = 0; i < 20; i++) {
+        const jitter = Math.sin(i * 0.5) * 15;
+        const alloc = Math.round(initAlloc + jitter);
+        const gpu = Math.round(alloc * 0.03);
+        const inter = Math.round(alloc * 0.05);
+        const cpu = alloc - gpu - inter;
+        telemetryHistory.push({ cpu, gpu, inter, idle: totalN - alloc });
+    }
+})();
+
 function recordTelemetryHistory(cpu, gpu, inter, idle) {
     telemetryHistory.push({ cpu, gpu, inter, idle });
     if (telemetryHistory.length > MAX_GRAPH_HISTORY) {
