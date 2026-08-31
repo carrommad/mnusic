@@ -217,16 +217,48 @@ document.addEventListener('DOMContentLoaded', () => {
         lumiPollInterval = setInterval(fetchLumiClusterStatus, 5000);
     });
 
-    const loadSlider = document.getElementById('loadSlider');
-    const loadVal = document.getElementById('loadVal');
+    let zeroLoadRandomInterval = null;
 
     loadSlider.addEventListener('input', (e) => {
         if (isLumiMode) return;
         currentLoad = parseFloat(e.target.value);
-        loadVal.innerText = `${currentLoad.toFixed(1)}%`;
+        
+        if (currentLoad === 0) {
+            loadVal.innerText = `0.0% (Dynamic Random Mode)`;
+            loadVal.style.color = 'var(--accent-rose)';
 
-        updateNodeCount();
-        updateMusicEngine();
+            if (!zeroLoadRandomInterval) {
+                let simPhase = 0;
+                zeroLoadRandomInterval = setInterval(() => {
+                    if (currentLoad > 0 || isLumiMode) {
+                        clearInterval(zeroLoadRandomInterval);
+                        zeroLoadRandomInterval = null;
+                        loadVal.style.color = 'var(--text-primary)';
+                        return;
+                    }
+                    simPhase += 0.15;
+                    // Dynamic Perlin-like smooth random fluctuation between 15% and 85% load
+                    const baseWalk = (Math.sin(simPhase * 0.7) * 0.5 + Math.sin(simPhase * 1.3) * 0.5);
+                    const randLoad = Math.max(5, Math.min(95, 50 + baseWalk * 35 + (Math.random() - 0.5) * 12));
+                    currentLoad = randLoad;
+
+                    // Update UI counters and graph dynamically while maintaining slider visual at 0
+                    updateNodeCount();
+                    updateMusicEngine();
+                    // Reset currentLoad to 0 check flag for slider state
+                    currentLoad = 0;
+                }, 1200);
+            }
+        } else {
+            if (zeroLoadRandomInterval) {
+                clearInterval(zeroLoadRandomInterval);
+                zeroLoadRandomInterval = null;
+            }
+            loadVal.style.color = 'var(--text-primary)';
+            loadVal.innerText = `${currentLoad.toFixed(1)}%`;
+            updateNodeCount();
+            updateMusicEngine();
+        }
     });
 
     const timbreSelect = document.getElementById('timbreSelect');
