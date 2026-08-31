@@ -44,6 +44,11 @@ By transforming abstract server metrics (CPU, GPU, and Interactive node allocati
 * **Multi-Band Auto-Scaling Graph**: Canvas visualization divided into 3 vertical bands (CPU, GPU, Interactive), ensuring all partition curves are clearly legible regardless of node scale differences.
 * **Dynamic Random Evolution Mode**: Activated at 0% load; phase-walk algorithms drive dynamic, non-deterministic partition allocation shifts every 5 to 30 seconds.
 
+### ⚡ 4. High-Performance Architecture & WebAssembly Expansion
+* **Browser C++ Hardware Acceleration**: Web Audio API executes sound synthesis directly on native browser C++ threads, bypassing JavaScript audio latency.
+* **Multi-Threaded Rendering**: Spatial collision math and particle physics execute in a separate Web Worker thread (`worker.js`) via `OffscreenCanvas` at a locked 60 FPS.
+* **Future Scalability (C++ / WebAssembly)**: Modular architecture designed to optionally compile heavy physics calculations to **C++/WebAssembly (Wasm)** if scaling to 100,000+ nodes.
+
 ---
 
 ## 4. Proposed Product Lineup & Deliverables
