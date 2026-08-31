@@ -32,7 +32,7 @@ function updateNodeCount() {
     document.getElementById('statAllocActive').innerText = newAllocCount.toLocaleString();
     document.getElementById('statAllocTotal').innerText = TOTAL_NODES.toLocaleString();
 
-    document.getElementById('hudNodes').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()} Nodes`;
+    document.getElementById('hudNodes').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()}`;
 
     recordTelemetryHistory(activeCpu, activeGpu, activeInter, idleCount);
     drawTelemetryGraph();
