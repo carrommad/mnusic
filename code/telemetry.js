@@ -46,10 +46,11 @@ function updateNodeCount() {
     previousAllocCount = newAllocCount;
 }
 
-const telemetryHistory = [];
+const mn5History = [];
+const lumiHistory = [];
 const MAX_GRAPH_HISTORY = 40;
 
-// Seed initial points so graph renders immediately upon initialization
+// Seed initial points for MN5 simulated cluster
 (function seedTelemetryHistory() {
     const initAlloc = 1895;
     const totalN = 1944;
@@ -59,14 +60,15 @@ const MAX_GRAPH_HISTORY = 40;
         const gpu = Math.round(alloc * 0.03);
         const inter = Math.round(alloc * 0.05);
         const cpu = alloc - gpu - inter;
-        telemetryHistory.push({ cpu, gpu, inter, idle: totalN - alloc });
+        mn5History.push({ cpu, gpu, inter, idle: totalN - alloc });
     }
 })();
 
 function recordTelemetryHistory(cpu, gpu, inter, idle) {
-    telemetryHistory.push({ cpu, gpu, inter, idle });
-    if (telemetryHistory.length > MAX_GRAPH_HISTORY) {
-        telemetryHistory.shift();
+    const activeHistory = isLumiMode ? lumiHistory : mn5History;
+    activeHistory.push({ cpu, gpu, inter, idle });
+    if (activeHistory.length > MAX_GRAPH_HISTORY) {
+        activeHistory.shift();
     }
 }
 
@@ -81,7 +83,8 @@ function drawTelemetryGraph() {
 
     ctx.clearRect(0, 0, w, h);
 
-    if (telemetryHistory.length < 2) return;
+    const activeHistory = isLumiMode ? lumiHistory : mn5History;
+    if (activeHistory.length < 2) return;
 
     const step = w / (MAX_GRAPH_HISTORY - 1);
 
@@ -109,7 +112,7 @@ function drawTelemetryGraph() {
         ctx.lineWidth = 1.8;
         ctx.lineJoin = 'round';
 
-        telemetryHistory.forEach((pt, idx) => {
+        activeHistory.forEach((pt, idx) => {
             const x = idx * step;
             // Normalized ratio (0.0 = 0%, 1.0 = 100% of partition capacity)
             const ratio = Math.max(0, Math.min(1.0, pt[s.key] / s.total));
