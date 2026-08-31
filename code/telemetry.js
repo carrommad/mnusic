@@ -13,9 +13,41 @@ function updateNodeCount() {
     const totalInter = Math.round(TOTAL_NODES * 0.05);
     const totalCpu = TOTAL_NODES - totalGpu - totalInter;
 
-    const activeGpu = Math.min(totalGpu, Math.round(newAllocCount * 0.03));
-    const activeInter = Math.min(totalInter, Math.round(newAllocCount * 0.05));
-    const activeCpu = Math.max(0, newAllocCount - activeGpu - activeInter);
+    // Track previous partition counts for entry/leave sound chimes
+    if (typeof prevActiveCpu === 'undefined') {
+        window.prevActiveCpu = 0;
+        window.prevActiveGpu = 0;
+        window.prevActiveInter = 0;
+    }
+
+    let activeCpu, activeGpu, activeInter;
+
+    if (window.customRandomCounts) {
+        activeCpu = Math.round(totalCpu * window.customRandomCounts.cpuRatio);
+        activeGpu = Math.round(totalGpu * window.customRandomCounts.gpuRatio);
+        activeInter = Math.round(totalInter * window.customRandomCounts.interRatio);
+    } else {
+        activeGpu = Math.min(totalGpu, Math.round(newAllocCount * 0.03));
+        activeInter = Math.min(totalInter, Math.round(newAllocCount * 0.05));
+        activeCpu = Math.max(0, newAllocCount - activeGpu - activeInter);
+    }
+
+    // Trigger distinct category sounds when nodes enter or leave
+    if (isPlaying) {
+        if (activeCpu !== window.prevActiveCpu) {
+            playPartitionNodeChime('cpu', activeCpu > window.prevActiveCpu);
+        }
+        if (activeGpu !== window.prevActiveGpu) {
+            playPartitionNodeChime('gpu', activeGpu > window.prevActiveGpu);
+        }
+        if (activeInter !== window.prevActiveInter) {
+            playPartitionNodeChime('inter', activeInter > window.prevActiveInter);
+        }
+    }
+
+    window.prevActiveCpu = activeCpu;
+    window.prevActiveGpu = activeGpu;
+    window.prevActiveInter = activeInter;
 
     document.getElementById('statCpuActive').innerText = activeCpu.toLocaleString();
     document.getElementById('statCpuTotal').innerText = totalCpu.toLocaleString();
@@ -39,7 +71,7 @@ function updateNodeCount() {
 
     syncWorkerState();
 
-    if (delta !== 0 && isPlaying) {
+    if (delta !== 0 && isPlaying && !window.customRandomCounts) {
         triggerVirtualXylophoneWaterfall(previousAllocCount, newAllocCount);
     }
 

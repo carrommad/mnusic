@@ -136,6 +136,80 @@ function triggerXylophoneNote(freq, pan = 0, volumeMult = 1.0, isGpu = false) {
     }
 }
 
+function playPartitionNodeChime(partitionType, isEntering = true) {
+    if (!audioCtx || !isPlaying) return;
+    const now = audioCtx.currentTime;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+    const pan = (Math.random() - 0.5) * 1.6;
+    const scaleNotes = SCALES[currentScaleKey] || SCALES['pentatonic'];
+
+    if (partitionType === 'cpu') {
+        // CPU PAR: Clean Sine/Triangle Soft Chime (Mid Register)
+        const baseNote = scaleNotes[Math.floor(Math.random() * scaleNotes.length)];
+        const startFreq = isEntering ? baseNote : baseNote * 1.25;
+        const endFreq = isEntering ? baseNote * 1.25 : baseNote;
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.15);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.06, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+    } else if (partitionType === 'gpu') {
+        // GPU A100: Deep Sub-Bass FM Resonance (Low Register)
+        const baseNote = scaleNotes[0] * 0.5; // Deep octave drop
+        const modOsc = audioCtx.createOscillator();
+        const modGain = audioCtx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(baseNote, now);
+
+        modOsc.frequency.setValueAtTime(isEntering ? baseNote * 2.0 : baseNote * 0.5, now);
+        modGain.gain.setValueAtTime(300, now);
+        modGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+        modOsc.connect(osc.frequency);
+        modOsc.start(now);
+        modOsc.stop(now + 0.4);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+
+    } else if (partitionType === 'inter') {
+        // INTERACTIVE: Sparkling Glass Crystal Bell (High Register)
+        const baseNote = scaleNotes[scaleNotes.length - 1] * 2.0; // High register
+        const startFreq = isEntering ? baseNote : baseNote * 1.5;
+        const endFreq = isEntering ? baseNote * 1.5 : baseNote * 0.8;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.18);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.08, now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.30);
+    }
+
+    osc.connect(gain);
+    if (panner) {
+        panner.pan.setValueAtTime(pan, now);
+        gain.connect(panner);
+        panner.connect(reverbNode || masterGain);
+    } else {
+        gain.connect(reverbNode || masterGain);
+    }
+
+    osc.start(now);
+    osc.stop(now + 0.4);
+}
+
 function playFluidDisplacementChime(x, count) {
     if (!audioCtx || !isPlaying) return;
     const now = audioCtx.currentTime;

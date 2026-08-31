@@ -228,7 +228,9 @@ document.addEventListener('DOMContentLoaded', () => {
             loadVal.style.color = 'var(--accent-rose)';
 
             if (!zeroLoadRandomInterval) {
-                let simPhase = 0;
+                let cpuPhase = 0;
+                let gpuPhase = 2.1;
+                let interPhase = 4.5;
                 zeroLoadRandomInterval = setInterval(() => {
                     if (currentLoad > 0 || isLumiMode) {
                         clearInterval(zeroLoadRandomInterval);
@@ -236,16 +238,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         loadVal.style.color = 'var(--text-primary)';
                         return;
                     }
-                    simPhase += 0.15;
-                    // Dynamic Perlin-like smooth random fluctuation between 15% and 85% load
-                    const baseWalk = (Math.sin(simPhase * 0.7) * 0.5 + Math.sin(simPhase * 1.3) * 0.5);
-                    const randLoad = Math.max(5, Math.min(95, 50 + baseWalk * 35 + (Math.random() - 0.5) * 12));
-                    currentLoad = randLoad;
+                    cpuPhase += 0.12;
+                    gpuPhase += 0.19;
+                    interPhase += 0.25;
 
-                    // Update UI counters and graph dynamically while maintaining slider visual at 0
+                    // Independent dynamic phase walks per partition
+                    const cpuRatio = Math.max(0.1, Math.min(0.95, 0.55 + Math.sin(cpuPhase) * 0.35 + (Math.random() - 0.5) * 0.1));
+                    const gpuRatio = Math.max(0.05, Math.min(0.95, 0.50 + Math.sin(gpuPhase * 1.4) * 0.40 + (Math.random() - 0.5) * 0.12));
+                    const interRatio = Math.max(0.05, Math.min(0.95, 0.45 + Math.cos(interPhase * 1.8) * 0.42 + (Math.random() - 0.5) * 0.15));
+
+                    // Store custom independent partition counts onto window.customRandomCounts
+                    window.customRandomCounts = { cpuRatio, gpuRatio, interRatio };
+
+                    // Compute weighted average for global load display
+                    currentLoad = Math.round((cpuRatio * 0.92 + gpuRatio * 0.03 + interRatio * 0.05) * 100);
+
                     updateNodeCount();
                     updateMusicEngine();
-                    // Reset currentLoad to 0 check flag for slider state
+
+                    // Reset currentLoad flag to 0 to maintain Random mode
                     currentLoad = 0;
                 }, 1200);
             }
@@ -254,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(zeroLoadRandomInterval);
                 zeroLoadRandomInterval = null;
             }
+            window.customRandomCounts = null;
             loadVal.style.color = 'var(--text-primary)';
             loadVal.innerText = `${currentLoad.toFixed(1)}%`;
             updateNodeCount();
