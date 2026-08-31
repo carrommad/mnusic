@@ -231,16 +231,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 let cpuPhase = 0;
                 let gpuPhase = 2.1;
                 let interPhase = 4.5;
-                zeroLoadRandomInterval = setInterval(() => {
+
+                const scheduleRandomStep = () => {
                     if (currentLoad > 0 || isLumiMode) {
-                        clearInterval(zeroLoadRandomInterval);
+                        if (zeroLoadRandomInterval) clearTimeout(zeroLoadRandomInterval);
                         zeroLoadRandomInterval = null;
                         loadVal.style.color = 'var(--text-primary)';
                         return;
                     }
-                    cpuPhase += 0.12;
-                    gpuPhase += 0.19;
-                    interPhase += 0.25;
+
+                    cpuPhase += (0.2 + Math.random() * 0.4);
+                    gpuPhase += (0.3 + Math.random() * 0.5);
+                    interPhase += (0.4 + Math.random() * 0.6);
 
                     // Independent dynamic phase walks per partition
                     const cpuRatio = Math.max(0.1, Math.min(0.95, 0.55 + Math.sin(cpuPhase) * 0.35 + (Math.random() - 0.5) * 0.1));
@@ -258,11 +260,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Reset currentLoad flag to 0 to maintain Random mode
                     currentLoad = 0;
-                }, 1200);
+
+                    // Randomized next change interval between 5 seconds (5000ms) and 3 minutes (180000ms)
+                    const nextIntervalMs = Math.floor(5000 + Math.random() * (180000 - 5000));
+                    
+                    const log = document.getElementById('noteLog');
+                    if (log) {
+                        const entry = document.createElement('div');
+                        entry.className = 'log-entry';
+                        entry.style.color = 'var(--accent-rose)';
+                        entry.innerText = `> 🎲 Random Shift Triggered (Next in ${(nextIntervalMs / 1000).toFixed(1)}s)`;
+                        log.prepend(entry);
+                        if (log.children.length > 12) log.removeChild(log.lastChild);
+                    }
+
+                    zeroLoadRandomInterval = setTimeout(scheduleRandomStep, nextIntervalMs);
+                };
+
+                scheduleRandomStep();
             }
         } else {
             if (zeroLoadRandomInterval) {
-                clearInterval(zeroLoadRandomInterval);
+                clearTimeout(zeroLoadRandomInterval);
                 zeroLoadRandomInterval = null;
             }
             window.customRandomCounts = null;
