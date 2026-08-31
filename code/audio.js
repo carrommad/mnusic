@@ -157,8 +157,8 @@ function playPartitionNodeChime(partitionType, isEntering = true) {
         osc.frequency.setValueAtTime(startFreq, now);
         osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.15);
 
-        gain.gain.setValueAtTime(0.0005, now);
-        gain.gain.exponentialRampToValueAtTime(0.015, now + 0.01);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.05, now + 0.01);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
 
     } else if (partitionType === 'gpu') {
@@ -171,15 +171,15 @@ function playPartitionNodeChime(partitionType, isEntering = true) {
         osc.frequency.setValueAtTime(baseNote, now);
 
         modOsc.frequency.setValueAtTime(isEntering ? baseNote * 2.0 : baseNote * 0.5, now);
-        modGain.gain.setValueAtTime(150, now);
+        modGain.gain.setValueAtTime(250, now);
         modGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
 
         modOsc.connect(osc.frequency);
         modOsc.start(now);
         modOsc.stop(now + 0.4);
 
-        gain.gain.setValueAtTime(0.0005, now);
-        gain.gain.exponentialRampToValueAtTime(0.035, now + 0.02);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
 
     } else if (partitionType === 'inter') {
@@ -192,8 +192,8 @@ function playPartitionNodeChime(partitionType, isEntering = true) {
         osc.frequency.setValueAtTime(startFreq, now);
         osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.18);
 
-        gain.gain.setValueAtTime(0.0005, now);
-        gain.gain.exponentialRampToValueAtTime(0.020, now + 0.005);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.07, now + 0.005);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.30);
     }
 
