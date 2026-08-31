@@ -86,15 +86,19 @@ self.onmessage = function(e) {
     else if (data.type === 'spawnRippleFromRandomNode') {
         const targetNode = nodeObjects[data.nodeIndex] || nodeObjects[Math.floor(Math.random() * nodeObjects.length)];
         if (targetNode) {
-            targetNode.flashAlpha = 1.0;
+            targetNode.flashAlpha = 3.5; // Intense luminescent glow flash on node
+            let colorStr = '6, 182, 212';
+            if (targetNode.type === 'gpu') colorStr = '245, 158, 11';
+            else if (targetNode.type === 'inter') colorStr = '244, 63, 94';
+
             soundRipples.push({
                 parentNode: targetNode,
                 x: targetNode.x,
                 y: targetNode.y,
-                maxR: data.maxR,
+                maxR: Math.max(220, (data.maxR || 100) * 2.5), // Big expanding circumference ring
                 currR: 0,
-                color: targetNode.type === 'gpu' ? '245, 158, 11' : '255, 255, 255',
-                duration: data.duration,
+                color: colorStr,
+                duration: 75, // Smooth ~1.25 second expansion pulse
                 frame: 0
             });
         }
@@ -335,11 +339,21 @@ function renderLoop() {
         ctx.beginPath();
         ctx.arc(r.x, r.y, Math.max(0.1, currR), 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(${r.color}, ${alpha})`;
-        ctx.lineWidth = Math.max(1.0, 2.5 * (1.0 - progress));
+        ctx.lineWidth = Math.max(1.8, 3.5 * (1.0 - progress));
         ctx.stroke();
+
+        // Inner glowing halo ring
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, Math.max(0.1, currR * 0.85), 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${r.color}, ${alpha * 0.45})`;
+        ctx.lineWidth = 1.0;
+        ctx.stroke();
+
         ctx.restore();
 
-        if (r.frame >= r.duration) soundRipples.splice(i, 1);
+        if (progress >= 1.0) {
+            soundRipples.splice(i, 1);
+        }
     }
 
     requestAnimationFrame(renderLoop);

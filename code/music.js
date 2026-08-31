@@ -63,10 +63,14 @@ function updateMusicEngine() {
     const loopLengths = [2300, 3100, 4700, 6100]; 
 
     loopLengths.forEach((loopLength, voiceIdx) => {
+        const breathingSpeedFactor = 1.0 + ((currentBreathingModulation || 0) * 0.40);
+        const baseInterval = loopLength / (Math.max(15, currentLoad || 50) / 50);
+        const intervalMs = Math.max(250, baseInterval / breathingSpeedFactor);
+
         const voiceTimer = setInterval(() => {
             if (!isPlaying) return;
 
-            const activeAllocCount = Math.round((currentLoad / 100) * TOTAL_NODES);
+            const activeAllocCount = Math.round((Math.max(15, currentLoad) / 100) * TOTAL_NODES);
             if (activeAllocCount === 0) return;
 
             let barIdx = Math.floor((voiceIdx / 4) * activeAllocCount);
@@ -87,12 +91,9 @@ function updateMusicEngine() {
             const pan = getVirtualBarPan(barIdx);
             const isGpu = barIdx >= Math.floor(TOTAL_NODES * 0.95);
 
-            // Breathing speed modulation: accelerate tempo during Inhale (+ modulation), relax during Exhale (- modulation)
-            const breathingSpeedFactor = 1.0 + (currentBreathingModulation * 0.40); // 1.4x faster on full Inhale, 0.6x on Exhale
-            const baseInterval = loopLength / (Math.max(15, currentLoad || 50) / 50);
-            const dynamicInterval = Math.max(120, baseInterval / breathingSpeedFactor);
+            triggerXylophoneNote(freq, pan, 1.25, isGpu);
 
-        }, dynamicInterval);
+        }, intervalMs);
 
         activeTimers.push(voiceTimer);
     });

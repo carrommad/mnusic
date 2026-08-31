@@ -70,42 +70,42 @@ function triggerXylophoneNote(freq, pan = 0, volumeMult = 1.0, isGpu = false) {
     const modulatorGain = audioCtx.createGain();
     const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
 
-    // Amplified pitch detune (+/- 120 cents / full semitone drift) & decay modulation for strong breathing contrast
-    const breathingPitchDetune = currentBreathingModulation * 120;
+    // Reduced FM mod index for crystal clear bell tone, boosted volume for high-pitched melodic note drops
+    const breathingPitchDetune = currentBreathingModulation * 25; // Gentle 25-cent breathing drift
     const tunedFreq = freq * Math.pow(2, breathingPitchDetune / 1200);
 
     let modRatio = 2.0;
-    let modIndex = 350 + (currentBreathingModulation * 180);
-    let decayTime = 1.6 + (currentBreathingModulation * 1.2);
+    let modIndex = 80; // Crisp bell clarity
+    let decayTime = 1.8 + (currentBreathingModulation * 0.8);
 
     if (isGpu) {
         modRatio = 4.0;
-        modIndex = 500 + (currentBreathingModulation * 250);
-        decayTime = 2.4 + (currentBreathingModulation * 1.6);
+        modIndex = 140;
+        decayTime = 2.4;
     } else if (selectedTimbre === 'marimba') {
         modRatio = 3.5;
-        modIndex = 150 + (currentBreathingModulation * 100);
-        decayTime = 2.0 + (currentBreathingModulation * 1.4);
+        modIndex = 40;
+        decayTime = 2.0;
     } else if (selectedTimbre === 'celesta') {
         modRatio = 1.0;
-        modIndex = 450 + (currentBreathingModulation * 200);
-        decayTime = 2.8 + (currentBreathingModulation * 1.8);
+        modIndex = 110;
+        decayTime = 3.0;
     } else if (selectedTimbre === 'vibraphone') {
         modRatio = 2.0;
-        modIndex = 250 + (currentBreathingModulation * 150);
-        decayTime = 3.5 + (currentBreathingModulation * 2.2);
+        modIndex = 60;
+        decayTime = 3.2;
     }
 
     carrier.frequency.setValueAtTime(tunedFreq, now);
     modulator.frequency.setValueAtTime(tunedFreq * modRatio, now);
 
     modulatorGain.gain.setValueAtTime(modIndex, now);
-    modulatorGain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+    modulatorGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
     modulator.connect(carrierGain);
     modulator.connect(carrier.frequency);
 
-    const baseVol = (isGpu ? 0.26 : 0.20) * volumeMult;
+    const baseVol = (isGpu ? 0.48 : 0.42) * volumeMult; // High clear volume presence
     carrierGain.gain.setValueAtTime(0.0001, now);
     carrierGain.gain.linearRampToValueAtTime(baseVol, now + 0.004);
     carrierGain.gain.exponentialRampToValueAtTime(0.0001, now + Math.max(0.2, decayTime));
