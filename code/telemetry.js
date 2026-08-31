@@ -100,23 +100,50 @@ function drawTelemetryGraph() {
     ctx.moveTo(0, h * 0.5); ctx.lineTo(w, h * 0.5);
     ctx.stroke();
 
+    // Compute separate min/max scaling per series over the history window for dynamic range
     const series = [
-        { key: 'cpu', total: totalCpu, color: '#06b6d4' },
-        { key: 'gpu', total: totalGpu, color: '#f59e0b' },
-        { key: 'inter', total: totalInter, color: '#f43f5e' }
+        { key: 'cpu', name: 'CPU', color: '#06b6d4' },
+        { key: 'gpu', name: 'GPU', color: '#f59e0b' },
+        { key: 'inter', name: 'INTER', color: '#f43f5e' }
     ];
 
+    // Compute min and max for each key across current history
     series.forEach(s => {
+        let minVal = Infinity;
+        let maxVal = -Infinity;
+        activeHistory.forEach(pt => {
+            const v = pt[s.key];
+            if (v < minVal) minVal = v;
+            if (v > maxVal) maxVal = v;
+        });
+
+        // Ensure range is not zero for flat lines
+        if (maxVal === minVal) {
+            maxVal += 1;
+            minVal -= 1;
+        }
+
+        s.min = minVal;
+        s.max = maxVal;
+    });
+
+    series.forEach((s, sIdx) => {
         ctx.beginPath();
         ctx.strokeStyle = s.color;
-        ctx.lineWidth = 1.8;
+        ctx.lineWidth = 2.0;
         ctx.lineJoin = 'round';
 
         activeHistory.forEach((pt, idx) => {
             const x = idx * step;
-            // Normalized ratio (0.0 = 0%, 1.0 = 100% of partition capacity)
-            const ratio = Math.max(0, Math.min(1.0, pt[s.key] / s.total));
-            const y = h - ratio * (h - 10) - 5;
+            const range = (s.max - s.min) || 1;
+            const norm = (pt[s.key] - s.min) / range; // 0.0 to 1.0 within its own range
+
+            // Stack vertical bands slightly per partition type so all 3 curves are distinctly visible
+            // CPU: Top band (y: 6 to 24), GPU: Middle band (y: 28 to 46), INTER: Bottom band (y: 50 to 68)
+            const bandHeight = (h - 14) / 3;
+            const bandTop = sIdx * bandHeight + 4;
+            const y = bandTop + (1.0 - norm) * (bandHeight - 4);
+
             if (idx === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         });
