@@ -89,7 +89,7 @@ function updateMusicEngine() {
 
             triggerXylophoneNote(freq, pan, 0.75, isGpu);
 
-        }, loopLength / (currentLoad / 50));
+        }, loopLength / (Math.max(15, currentLoad || 50) / 50));
 
         activeTimers.push(voiceTimer);
     });

@@ -218,12 +218,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let zeroLoadRandomInterval = null;
+    let isRandomMode = false;
 
     loadSlider.addEventListener('input', (e) => {
         if (isLumiMode) return;
-        currentLoad = parseFloat(e.target.value);
+        const sliderVal = parseFloat(e.target.value);
         
-        if (currentLoad === 0) {
+        if (sliderVal === 0) {
+            isRandomMode = true;
             loadVal.innerText = `Random`;
             loadVal.style.color = 'var(--accent-rose)';
 
@@ -233,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let interPhase = 4.5;
 
                 const scheduleRandomStep = () => {
-                    if (currentLoad > 0 || isLumiMode) {
+                    if (!isRandomMode || isLumiMode) {
                         if (zeroLoadRandomInterval) clearTimeout(zeroLoadRandomInterval);
                         zeroLoadRandomInterval = null;
                         loadVal.style.color = 'var(--text-primary)';
@@ -249,17 +251,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const gpuRatio = Math.max(0.05, Math.min(0.95, 0.50 + Math.sin(gpuPhase * 1.4) * 0.40 + (Math.random() - 0.5) * 0.12));
                     const interRatio = Math.max(0.05, Math.min(0.95, 0.45 + Math.cos(interPhase * 1.8) * 0.42 + (Math.random() - 0.5) * 0.15));
 
-                    // Store custom independent partition counts onto window.customRandomCounts
                     window.customRandomCounts = { cpuRatio, gpuRatio, interRatio };
 
-                    // Compute weighted average for global load display
-                    currentLoad = Math.round((cpuRatio * 0.92 + gpuRatio * 0.03 + interRatio * 0.05) * 100);
+                    // Set actual non-zero currentLoad for synthesizers
+                    currentLoad = Math.max(15, Math.round((cpuRatio * 0.92 + gpuRatio * 0.03 + interRatio * 0.05) * 100));
 
                     updateNodeCount();
                     updateMusicEngine();
-
-                    // Reset currentLoad flag to 0 to maintain Random mode
-                    currentLoad = 0;
 
                     // Randomized next change interval between 5 seconds (5000ms) and 3 minutes (180000ms)
                     const nextIntervalMs = Math.floor(5000 + Math.random() * (180000 - 5000));
@@ -280,11 +278,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 scheduleRandomStep();
             }
         } else {
+            isRandomMode = false;
             if (zeroLoadRandomInterval) {
                 clearTimeout(zeroLoadRandomInterval);
                 zeroLoadRandomInterval = null;
             }
             window.customRandomCounts = null;
+            currentLoad = sliderVal;
             loadVal.style.color = 'var(--text-primary)';
             loadVal.innerText = `${currentLoad.toFixed(1)}%`;
             updateNodeCount();
