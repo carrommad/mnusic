@@ -288,9 +288,9 @@ select {
 select:focus { border-color: var(--accent-gold); }
 
 .stat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
 }
 
 .stat-box {
