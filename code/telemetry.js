@@ -34,6 +34,9 @@ function updateNodeCount() {
 
     document.getElementById('hudNodes').innerText = `${newAllocCount.toLocaleString()} / ${TOTAL_NODES.toLocaleString()} Nodes`;
 
+    recordTelemetryHistory(activeCpu, activeGpu, activeInter, idleCount);
+    drawTelemetryGraph();
+
     syncWorkerState();
 
     if (delta !== 0 && isPlaying) {
@@ -41,6 +44,62 @@ function updateNodeCount() {
     }
 
     previousAllocCount = newAllocCount;
+}
+
+const telemetryHistory = [];
+const MAX_GRAPH_HISTORY = 40;
+
+function recordTelemetryHistory(cpu, gpu, inter, idle) {
+    telemetryHistory.push({ cpu, gpu, inter, idle });
+    if (telemetryHistory.length > MAX_GRAPH_HISTORY) {
+        telemetryHistory.shift();
+    }
+}
+
+function drawTelemetryGraph() {
+    const canvas = document.getElementById('telemetryGraphCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    if (telemetryHistory.length < 2) return;
+
+    const step = w / (MAX_GRAPH_HISTORY - 1);
+    const maxVal = TOTAL_NODES || 1;
+
+    // Draw subtle grid lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.5); ctx.lineTo(w, h * 0.5);
+    ctx.stroke();
+
+    const series = [
+        { key: 'cpu', color: '#06b6d4' },
+        { key: 'gpu', color: '#f59e0b' },
+        { key: 'inter', color: '#f43f5e' }
+    ];
+
+    series.forEach(s => {
+        ctx.beginPath();
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 1.8;
+        ctx.lineJoin = 'round';
+
+        telemetryHistory.forEach((pt, idx) => {
+            const x = idx * step;
+            const y = h - (pt[s.key] / maxVal) * (h - 8) - 4;
+            if (idx === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+
+        ctx.stroke();
+    });
 }
 
 async function fetchLumiClusterStatus() {

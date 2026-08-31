@@ -51,7 +51,10 @@
                 </div>
 
                 <div style="margin-top:0.2rem;">AUTO-EVOLVE MODE: <span id="hudAutoEvolve" style="color:var(--text-secondary);">OFF</span></div>
-                <div style="margin-top:0.1rem;">WATERFALL SWEEP: <span id="hudWaterfall" style="color:var(--accent-gold);">IDLE</span></div>
+            </div>
+            <div class="telemetry-graph-overlay">
+                <div class="graph-title">NODE EVOLUTION TRACKER</div>
+                <canvas id="telemetryGraphCanvas" width="240" height="75"></canvas>
             </div>
             <canvas id="ambientCanvas"></canvas>
         </div>
