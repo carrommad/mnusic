@@ -1,5 +1,5 @@
 #!/bin/bash
-OUTPUT_FILE="cluster_node_status.txt"
+OUTPUT_FILE="scratch/cluster_node_status.txt"
 
 echo "==========================================" > "$OUTPUT_FILE"
 echo "  HPC NODE STATUS REPORT - $(date)" >> "$OUTPUT_FILE"
