@@ -336,6 +336,11 @@ select {
     border-color: rgba(245, 158, 11, 0.2);
 }
 
+.val-gold { color: var(--accent-gold); }
+.val-cyan { color: var(--accent-cyan); }
+.val-rose { color: var(--accent-rose); }
+.val-slate { color: var(--text-secondary); }
+
 .note-log {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
